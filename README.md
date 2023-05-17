@@ -1,5 +1,5 @@
-# Cardano Schedules
-Run schedule task
+# Cardano Explorer Rewards
+
 ## Environment value
 - HOST: database host
 - POSTGRES_PORT: database port
