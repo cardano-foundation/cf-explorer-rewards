@@ -1,0 +1,27 @@
+version: '3.9'
+
+services:
+  cardano-jobs:
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    image: cardano-jobs-${NETWORK_NAME}
+    restart: always
+    build:
+      context: .
+    environment:
+      - SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE}
+      - HOST=${HOST}
+      - POSTGRES_PORT=${POSTGRES_PORT}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_SCHEMA=${POSTGRES_SCHEMA}
+      - BOOTSTRAP_SERVER=${BOOTSTRAP_SERVER}
+
+      - INSERT_POOL_DATA_DELAY=${INSERT_POOL_DATA_DELAY}
+
+      - NETWORK_NAME=${NETWORK_NAME}
+
+      - REDIS_MASTER_NAME=${REDIS_MASTER_NAME}
+      - REDIS_SENTINEL_PASS=${REDIS_SENTINEL_PASS}
+      - REDIS_SENTINEL_HOST=${REDIS_SENTINEL_HOST}
