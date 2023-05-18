@@ -13,7 +13,8 @@ import org.springframework.stereotype.Service;
 
 import org.cardanofoundation.explorer.rewards.config.KoiosClient;
 import org.cardanofoundation.explorer.rewards.entity.AdaPots3;
-import org.cardanofoundation.explorer.rewards.service.interfaces.AdaPots3FetchingService;
+import org.cardanofoundation.explorer.rewards.repository.AdaPots3Repository;
+import org.cardanofoundation.explorer.rewards.service.AdaPots3FetchingService;
 import rest.koios.client.backend.api.base.Result;
 import rest.koios.client.backend.api.base.exception.ApiException;
 import rest.koios.client.backend.api.network.model.Totals;

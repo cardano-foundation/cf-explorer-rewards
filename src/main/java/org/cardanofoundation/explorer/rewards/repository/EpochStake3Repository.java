@@ -11,6 +11,4 @@ import org.cardanofoundation.explorer.rewards.entity.EpochStake3;
 
 @Repository
 public interface EpochStake3Repository extends JpaRepository<EpochStake3, Long> {
-  Optional<EpochStake3> findByEpochNoAndAddrAndPool(int epochNo, StakeAddress stakeAddress,
-                                                    PoolHash poolHash);
 }

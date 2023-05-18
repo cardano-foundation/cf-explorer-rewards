@@ -37,69 +37,11 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
-        default_schema: ${POSTGRES_SCHEMA:mainnet}
+        default_schema: ${SCHEMA:mainnet}
         show_sql: false
         format_sql: true
         jdbc:
           batch_size: 100
-  task:
-    execution:
-      pool:
-        max-size: 2
-        core-size: 2
-        queue-capacity: 50
-      thread-name-prefix: Executorxx-
 
-logging:
-  level:
-    com:
-      cardano: INFO
-    io: OFF
-    root: INFO
-
-jobs:
-  koios:
-    enabled: ${KOIOS_JOB_ENABLED:true}
-  save-batch: 100
-token:
-  metadata:
-    url: ${token-metdata-url:https://github.com/cardano-foundation/cardano-token-registry.git}
-    folder: ${token-metadata-folder:/mappings}
 application:
-  network: ${NETWORK_NAME:mainnet}
-
-kafka:
-  auto-create-topics: false
-  admin:
-    bootstrapServers: ${BOOSTRAP_SERVER_HOST:localhost}:${BOOSTRAP_SERVER_PORT:29092}
-  producers:
-    json-producer:
-      clientId: json-producer
-      retries: 3
-      bootstrapServers: ${BOOSTRAP_SERVER_HOST:localhost}:${BOOSTRAP_SERVER_PORT:29092}
-      maxInFlightRequestsPerConnection: 1
-      requestTimeoutMs: 30000
-      batchSize: 16384
-      lingerMs: 5
-      bufferMemory: 33554432
-      acks: all
-      enableIdempotence: true
-      keySerializer: org.apache.kafka.common.serialization.StringSerializer
-      valueSerializer: org.springframework.kafka.support.serializer.JsonSerializer
-  consumers:
-    json-consumer:
-      clientId: json-consumer
-      bootstrapServers: ${BOOSTRAP_SERVER_HOST:localhost}:${BOOSTRAP_SERVER_PORT:29092}
-      keyDeserializer: org.apache.kafka.common.serialization.StringDeserializer
-      valueDeserializer: org.springframework.kafka.support.serializer.JsonDeserializer
-      autoOffsetReset: earliest
-      enableAutoCommit: false
-      autoCommitIntervalMs: 1000
-      sessionTimeoutMs: 30000
-      trustedPackages: "*"
-      allowAutoCreateTopics: false
-      concurrency: 6
-      pollTimeout: 360000000
-      groupId: ${NETWORK_NAME:mainnet}
-koios:
-  network: ${KOIOS_NETWORK:mainet}
+  network: ${SCHEMA:mainet}

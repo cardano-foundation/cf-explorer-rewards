@@ -1,4 +1,4 @@
-package org.cardanofoundation.explorer.rewards.service.interfaces;
+package org.cardanofoundation.explorer.rewards.service;
 
 import java.util.List;
 

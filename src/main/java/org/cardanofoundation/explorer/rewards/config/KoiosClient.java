@@ -1,5 +1,7 @@
 package org.cardanofoundation.explorer.rewards.config;
 
+import javax.annotation.PostConstruct;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -11,23 +13,28 @@ import rest.koios.client.backend.factory.BackendService;
 
 @Component
 public class KoiosClient {
-  @Value("${koios.network}")
-  String value;
 
-  public AccountService accountService(){
-    return getBackendService().getAccountService();
+  @Value("${application.network}")
+  private String value;
+
+  private BackendService backendService;
+
+  public AccountService accountService() {
+    return this.backendService.getAccountService();
   }
 
-  public NetworkService networkService(){
-    return getBackendService().getNetworkService();
+  public NetworkService networkService() {
+    return this.backendService.getNetworkService();
   }
 
-  private BackendService getBackendService() {
-    return switch (value) {
+  @PostConstruct
+  void setBackendService() {
+    this.backendService = switch (value) {
+      case NetworkConstants.MAINNET -> BackendFactory.getKoiosMainnetService();
       case NetworkConstants.PREPROD -> BackendFactory.getKoiosPreprodService();
       case NetworkConstants.PREVIEW -> BackendFactory.getKoiosPreviewService();
       case NetworkConstants.GUILDNET -> BackendFactory.getKoiosGuildService();
-      default -> BackendFactory.getKoiosMainnetService();
+      default -> throw new IllegalStateException("Unexpected value: " + value);
     };
   }
 }
