@@ -9,6 +9,8 @@
 - POSTGRES_PASSWORD:database user password
 - SCHEMA: database schema
 - SPRING_PROFILES_ACTIVE: active profiles
-- POOL_CORE_SIZE: the ThreadPoolExecutor's core pool size.
+- POOL_CORE_SIZE: the ThreadPoolExecutor's core pool size
 - POOL_MAX_SIZE: the ThreadPoolExecutor's maximum pool size
 - LIST_SIZE_EACH_THREAD: batch size to fetch data each thread
+- FLYWAY_ENABLE: Whether to enable flyway
+- FLYWAY_VALIDATE: Whether to automatically call validate when performing a migration

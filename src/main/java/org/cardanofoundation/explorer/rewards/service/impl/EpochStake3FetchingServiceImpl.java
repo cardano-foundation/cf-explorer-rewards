@@ -1,5 +1,24 @@
 package org.cardanofoundation.explorer.rewards.service.impl;
 
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
+import lombok.extern.slf4j.Slf4j;
+import org.cardanofoundation.explorer.consumercommon.entity.PoolHash;
+import org.cardanofoundation.explorer.consumercommon.entity.StakeAddress;
+import org.cardanofoundation.explorer.rewards.config.KoiosClient;
+import org.cardanofoundation.explorer.rewards.entity.EpochStake3;
+import org.cardanofoundation.explorer.rewards.entity.EpochStakeCheckpoint;
+import org.cardanofoundation.explorer.rewards.repository.*;
+import org.cardanofoundation.explorer.rewards.service.EpochStake3FetchingService;
+import org.jetbrains.annotations.NotNull;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import rest.koios.client.backend.api.account.model.AccountHistory;
+import rest.koios.client.backend.api.account.model.AccountHistoryInner;
+import rest.koios.client.backend.api.base.exception.ApiException;
+
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
@@ -8,30 +27,6 @@ import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-
-import lombok.AccessLevel;
-import lombok.RequiredArgsConstructor;
-import lombok.experimental.FieldDefaults;
-import lombok.extern.slf4j.Slf4j;
-
-import org.springframework.scheduling.annotation.Async;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import org.cardanofoundation.explorer.consumercommon.entity.PoolHash;
-import org.cardanofoundation.explorer.consumercommon.entity.StakeAddress;
-import org.cardanofoundation.explorer.rewards.config.KoiosClient;
-import org.cardanofoundation.explorer.rewards.entity.EpochStake3;
-import org.cardanofoundation.explorer.rewards.entity.EpochStakeCheckpoint;
-import org.cardanofoundation.explorer.rewards.repository.EpochRepository;
-import org.cardanofoundation.explorer.rewards.repository.EpochStake3Repository;
-import org.cardanofoundation.explorer.rewards.repository.EpochStakeCheckpointRepository;
-import org.cardanofoundation.explorer.rewards.repository.PoolHashRepository;
-import org.cardanofoundation.explorer.rewards.repository.StakeAddressRepository;
-import org.cardanofoundation.explorer.rewards.service.EpochStake3FetchingService;
-import rest.koios.client.backend.api.account.model.AccountHistory;
-import rest.koios.client.backend.api.account.model.AccountHistoryInner;
-import rest.koios.client.backend.api.base.exception.ApiException;
 
 @Service
 @FieldDefaults(level = AccessLevel.PRIVATE)
@@ -47,17 +42,24 @@ public class EpochStake3FetchingServiceImpl implements EpochStake3FetchingServic
   final EpochRepository epochRepository;
 
   @Override
-  @Transactional
   @Async
+  @Transactional(rollbackFor = {Exception.class})
   public CompletableFuture<Boolean> fetchData(List<String> stakeAddressList) {
     List<EpochStake3> result = new ArrayList<>();
     try {
       var curTime = System.currentTimeMillis();
       Integer currentEpoch = epochRepository.findMaxEpoch();
 
-      List<AccountHistory> accountHistoryList = koiosClient.accountService()
-          .getAccountHistory(stakeAddressList, null, null)
-          .getValue();
+      // we only fetch data with addresses that are not in the checkpoint table
+      // or in the checkpoint table but have an epoch checkpoint value < (current epoch - 1)
+      List<String> stakeAddressListNeedFetchData = getStakeAddressListNeedFetchData(stakeAddressList, currentEpoch);
+
+      if (stakeAddressListNeedFetchData.isEmpty()) {
+          log.info("EpochStake: all stake addresses were in checkpoint and had epoch checkpoint = current epoch - 1");
+          return CompletableFuture.completedFuture(true);
+      }
+
+      List<AccountHistory> accountHistoryList = getAccountHistoryList(stakeAddressListNeedFetchData);
 
       int epochStakeSize = accountHistoryList
           .parallelStream()
@@ -65,24 +67,14 @@ public class EpochStake3FetchingServiceImpl implements EpochStake3FetchingServic
           .sum();
 
       log.info("fetch {} epoch_stake by koios api: {} ms, with stake_address input size {}",
-          epochStakeSize, System.currentTimeMillis() - curTime,
-          stakeAddressList.size());
+          epochStakeSize, System.currentTimeMillis() - curTime, stakeAddressListNeedFetchData.size());
 
-      List<String> poolIds = accountHistoryList.stream()
-          .flatMap(accountHistory -> accountHistory.getHistory().stream())
-          .map(AccountHistoryInner::getPoolId)
-          .toList();
+      Map<String, PoolHash> poolHashMap = getPoolHashMap(accountHistoryList);
 
-      Map<String, PoolHash> poolHashMap = poolHashRepository.findByViewIn(poolIds).stream()
-          .collect(Collectors.toMap(PoolHash::getView, Function.identity()));
-
-      Map<String, StakeAddress> stakeAddressMap = stakeAddressRepository
-          .findByViewIn(stakeAddressList)
-          .stream()
-          .collect(Collectors.toMap(StakeAddress::getView, Function.identity()));
+      Map<String, StakeAddress> stakeAddressMap = getStakeAddressMap(stakeAddressListNeedFetchData);
 
       Map<String, EpochStakeCheckpoint> epochStakeCheckpointMap =
-          getEpochStakeCheckpointMap(stakeAddressList, accountHistoryList);
+          getEpochStakeCheckpointMap(stakeAddressListNeedFetchData, accountHistoryList);
 
       for (var accountHistory : accountHistoryList) {
         var epochStakeCheckpoint = epochStakeCheckpointMap.get(accountHistory.getStakeAddress());
@@ -112,7 +104,7 @@ public class EpochStake3FetchingServiceImpl implements EpochStake3FetchingServic
       epochStakeCheckpointRepository.saveAll(epochStakeCheckpointMap.values());
 
       log.info("fetch and save {} epoch_stake complete in: {} ms, with stake_address input size {}",
-          result.size(), System.currentTimeMillis() - curTime, stakeAddressList.size());
+          result.size(), System.currentTimeMillis() - curTime, stakeAddressListNeedFetchData.size());
     } catch (ApiException e) {
       log.error("Exception when fetching epoch stake data", e);
       return CompletableFuture.completedFuture(Boolean.FALSE);
@@ -147,4 +139,45 @@ public class EpochStake3FetchingServiceImpl implements EpochStake3FetchingServic
 
     return epochStakeCheckpointMap;
   }
+
+  @NotNull
+  private Map<String, StakeAddress> getStakeAddressMap(List<String> stakeAddressList) {
+    return stakeAddressRepository
+            .findByViewIn(stakeAddressList)
+            .stream()
+            .collect(Collectors.toMap(StakeAddress::getView, Function.identity()));
+  }
+
+  @NotNull
+  private Map<String, PoolHash> getPoolHashMap(List<AccountHistory> accountHistoryList) {
+    List<String> poolIds = accountHistoryList.stream()
+            .flatMap(accountHistory -> accountHistory.getHistory().stream())
+            .map(AccountHistoryInner::getPoolId)
+            .toList();
+
+    return poolHashRepository.findByViewIn(poolIds).stream()
+            .collect(Collectors.toMap(PoolHash::getView, Function.identity()));
+  }
+
+  private List<AccountHistory> getAccountHistoryList(List<String> stakeAddressList)
+          throws ApiException {
+    return koiosClient.accountService()
+            .getAccountHistory(stakeAddressList, null, null)
+            .getValue();
+  }
+
+  private List<String> getStakeAddressListNeedFetchData(List<String> stakeAddressList, int currentEpoch) {
+    Map<String, EpochStakeCheckpoint> epochStakeCheckpointMap = epochStakeCheckpointRepository
+            .findByStakeAddressIn(stakeAddressList)
+            .stream()
+            .collect(Collectors.toMap(EpochStakeCheckpoint::getStakeAddress, Function.identity()));
+
+    return stakeAddressList.stream()
+            .filter(stakeAddress ->
+                    ((!epochStakeCheckpointMap.containsKey(stakeAddress))
+                    || epochStakeCheckpointMap.get(stakeAddress).getEpochCheckpoint() < currentEpoch - 1
+                    ))
+            .collect(Collectors.toList());
+  }
+
 }

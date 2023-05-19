@@ -42,12 +42,25 @@ spring:
         format_sql: true
         jdbc:
           batch_size: 100
+  #task specific config
   task:
     execution:
       pool:
         max-size: ${POOL_MAX_SIZE:12}
         core-size: ${POOL_CORE_SIZE:10}
       thread-name-prefix: Executorxx-
+  ## Flyway config
+  flyway:
+    enabled: ${FLYWAY_ENABLE:false}
+    url: ${spring.datasource.url}
+    user: ${spring.datasource.username}
+    password: ${spring.datasource.password}
+    group: true
+    sql-migration-prefix: V
+    sql-migration-separator: __
+    sql-migration-suffixes: .sql
+    locations: db/migration/dev/final/
+    validate-on-migrate: ${FLYWAY_VALIDATE:false}
 application:
   network: ${SCHEMA:mainnet}
   reward:

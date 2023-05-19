@@ -1,19 +1,16 @@
 package org.cardanofoundation.explorer.rewards.concurrent;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.CompletableFuture;
-
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
-
+import org.cardanofoundation.explorer.rewards.service.Reward3FetchingService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
-import org.cardanofoundation.explorer.rewards.service.Reward3FetchingService;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 @Component
 @FieldDefaults(level = AccessLevel.PRIVATE)
@@ -25,7 +22,6 @@ public class Reward3ConcurrentFetching {
   @Value("${application.reward.list-size-each-thread}")
   int subListSize;
 
-  @Transactional(rollbackFor = Exception.class)
   public Boolean fetchDataConcurrently(List<String> stakeAddressList) {
     var curTime = System.currentTimeMillis();
 
