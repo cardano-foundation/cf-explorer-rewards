@@ -4,6 +4,9 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -12,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,8 +28,8 @@ import org.cardanofoundation.explorer.rewards.entity.RewardCheckpoint;
 import org.cardanofoundation.explorer.rewards.repository.EpochRepository;
 import org.cardanofoundation.explorer.rewards.repository.PoolHashRepository;
 import org.cardanofoundation.explorer.rewards.repository.Reward3Repository;
-import org.cardanofoundation.explorer.rewards.repository.StakeAddressRepository;
 import org.cardanofoundation.explorer.rewards.repository.RewardCheckpointRepository;
+import org.cardanofoundation.explorer.rewards.repository.StakeAddressRepository;
 import org.cardanofoundation.explorer.rewards.service.Reward3FetchingService;
 import org.jetbrains.annotations.NotNull;
 import rest.koios.client.backend.api.account.model.AccountReward;
@@ -45,6 +49,11 @@ public class Reward3FetchingServiceImpl implements Reward3FetchingService {
   final RewardCheckpointRepository rewardCheckpointRepository;
   final EpochRepository epochRepository;
 
+  @Value("${application.reward.fixed-thread-pool-size}")
+  int threadPoolSize;
+  @Value("${application.reward.list-size-each-thread}")
+  int subListSize;
+
   @Override
   @Transactional
   public Boolean fetchData(List<String> stakeAddressList) {
@@ -55,7 +64,7 @@ public class Reward3FetchingServiceImpl implements Reward3FetchingService {
       List<AccountRewards> accountRewardsList = getAccountRewards(stakeAddressList);
 
       Map<String, RewardCheckpoint> rewardCheckpointMap = getRewardCheckpointMap(stakeAddressList,
-                                                                                 accountRewardsList);
+          accountRewardsList);
 
       Map<String, StakeAddress> stakeAddressMap = getStakeAddressMap(stakeAddressList);
 
@@ -94,9 +103,9 @@ public class Reward3FetchingServiceImpl implements Reward3FetchingService {
       reward3Repository.saveAll(result);
       rewardCheckpointRepository.saveAll(rewardCheckpointMap.values());
 
-      log.info("Fetch {} reward record by koios api: {} ms, with stake_address input size {}",
-               result.size(), System.currentTimeMillis() - curTime,
-               stakeAddressList.size());
+      log.info("Save {} reward record from koios api: {} ms, with stake_address input size {}",
+          result.size(), System.currentTimeMillis() - curTime,
+          stakeAddressList.size());
     } catch (ApiException e) {
       //todo
       log.error("Exception when fetching reward data", e);
@@ -104,6 +113,42 @@ public class Reward3FetchingServiceImpl implements Reward3FetchingService {
     }
 
     return Boolean.TRUE;
+  }
+
+  @Override
+  @Transactional(rollbackFor = Exception.class)
+  public Boolean fetchDataConcurrently(List<String> stakeAddressList) {
+    var curTime = System.currentTimeMillis();
+
+    if (stakeAddressList.size() <= subListSize) {
+      return fetchData(stakeAddressList);
+    }
+
+    var executorService = Executors.newFixedThreadPool(threadPoolSize);
+    var result = new AtomicBoolean(true);
+
+    for (int i = 0; i < stakeAddressList.size(); i += subListSize) {
+      int endIndex = Math.min(i + subListSize, stakeAddressList.size());
+      var sublist = stakeAddressList.subList(i, endIndex);
+
+      executorService.submit(() -> {
+        boolean threadResult = fetchData(sublist);
+        result.compareAndSet(true, threadResult);
+      });
+    }
+
+    executorService.shutdown();
+    try {
+        if (!executorService.awaitTermination(Long.MAX_VALUE, TimeUnit.MILLISECONDS)) {
+        executorService.shutdownNow();
+      }
+    } catch (InterruptedException e) {
+      executorService.shutdownNow();
+    }
+
+    log.info("Fetch and save reward record concurrently by koios api: {} ms",
+        System.currentTimeMillis() - curTime);
+    return result.get();
   }
 
   @NotNull

@@ -106,3 +106,6 @@ kafka:
       groupId: ${NETWORK_NAME:preprod}
 koios:
   network: ${KOIOS_NETWORK:mainet}
+  reward:
+    fixed-thread-pool-size: ${FIXED_THEAD_POOL_SIZE:20}
+    list-size-each-thread: ${LIST_SIZE_EACH_THREAD:5}
