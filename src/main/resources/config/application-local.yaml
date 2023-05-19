@@ -1,13 +1,13 @@
 # Infrastructure domain
 infrastructure:
-  host: ${HOST:localhost}
+  host: ${HOST:10.4.10.112}
 spring:
   # Datasource specific configs
   datasource:
     type: com.zaxxer.hikari.HikariDataSource
-    url: jdbc:postgresql://${infrastructure.host}:${POSTGRES_PORT:5432}/${POSTGRES_DB:explorer}?currentSchema=${spring.jpa.properties.hibernate.default_schema}
-    username: ${POSTGRES_USER:postgres}
-    password: ${POSTGRES_PASSWORD:1}
+    url: jdbc:postgresql://${infrastructure.host}:${POSTGRES_PORT:54321}/${POSTGRES_DB:explorer}?currentSchema=${spring.jpa.properties.hibernate.default_schema}
+    username: ${POSTGRES_USER:huylevan}
+    password: ${POSTGRES_PASSWORD:secret_huylevan}
     driver-class-name: org.postgresql.Driver
     # Hikari specific configs
     hikari:
@@ -37,75 +37,14 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
-        default_schema: ${POSTGRES_SCHEMA:mainnet}
+        default_schema: ${SCHEMA:mainnet}
         show_sql: false
         format_sql: true
         jdbc:
           batch_size: 100
-  task:
-    execution:
-      pool:
-        max-size: 2
-        core-size: 2
-        queue-capacity: 50
-      thread-name-prefix: Executorxx-
 
-logging:
-  level:
-    com:
-      cardano: INFO
-    io: OFF
-    root: INFO
-
-jobs:
-  koios:
-    enabled: ${KOIOS_JOB_ENABLED:true}
-    insert:
-      delay: ${INSERT_KOIOS_DELAY:180000}
-      init: 5000
-  install-batch: 100
-token:
-  metadata:
-    url: ${TOKEN-METDATA-URL:https://github.com/cardano-foundation/cardano-token-registry.git}
-    folder: ${TOKEN-METADATA-FOLDER:/mappings}
 application:
-  network: ${NETWORK_NAME:mainnet}
-
-kafka:
-  auto-create-topics: false
-  admin:
-    bootstrapServers: ${BOOSTRAP_SERVER_HOST:localhost}:${BOOSTRAP_SERVER_PORT:29092}
-  producers:
-    json-producer:
-      clientId: json-producer
-      retries: 3
-      bootstrapServers: ${BOOSTRAP_SERVER_HOST:localhost}:${BOOSTRAP_SERVER_PORT:29092}
-      maxInFlightRequestsPerConnection: 1
-      requestTimeoutMs: 30000
-      batchSize: 16384
-      lingerMs: 5
-      bufferMemory: 33554432
-      acks: all
-      enableIdempotence: true
-      keySerializer: org.apache.kafka.common.serialization.StringSerializer
-      valueSerializer: org.springframework.kafka.support.serializer.JsonSerializer
-  consumers:
-    json-consumer:
-      clientId: json-consumer
-      bootstrapServers: ${BOOSTRAP_SERVER_HOST:localhost}:${BOOSTRAP_SERVER_PORT:29092}
-      keyDeserializer: org.apache.kafka.common.serialization.StringDeserializer
-      valueDeserializer: org.springframework.kafka.support.serializer.JsonDeserializer
-      autoOffsetReset: earliest
-      enableAutoCommit: false
-      autoCommitIntervalMs: 1000
-      sessionTimeoutMs: 30000
-      trustedPackages: "*"
-      allowAutoCreateTopics: false
-      concurrency: 6
-      pollTimeout: 360000000
-      groupId: ${NETWORK_NAME:preprod}
-koios:
-  network: ${KOIOS_NETWORK:mainet}
+  network: ${SCHEMA:mainet}
   reward:
-    fixed-thread-pool-size: ${FIXED_THEAD_POOL_SIZE:20}
+    fixed-thread-pool-size:  ${FIXED_THEAD_POOL_SIZE:10}
     list-size-each-thread: ${LIST_SIZE_EACH_THREAD:5}

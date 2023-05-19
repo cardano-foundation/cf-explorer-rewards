@@ -107,7 +107,6 @@ public class Reward3FetchingServiceImpl implements Reward3FetchingService {
           result.size(), System.currentTimeMillis() - curTime,
           stakeAddressList.size());
     } catch (ApiException e) {
-      //todo
       log.error("Exception when fetching reward data", e);
       return Boolean.FALSE;
     }
@@ -143,6 +142,7 @@ public class Reward3FetchingServiceImpl implements Reward3FetchingService {
         executorService.shutdownNow();
       }
     } catch (InterruptedException e) {
+      log.warn("Exception when fetching reward data concurrently", e);
       executorService.shutdownNow();
     }
 
