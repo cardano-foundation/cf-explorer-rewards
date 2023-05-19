@@ -17,8 +17,8 @@ import org.cardanofoundation.explorer.consumercommon.entity.BaseEntity;
 import org.hibernate.Hibernate;
 
 @Entity
-@Table(name = "reward_checkpoint", uniqueConstraints = {
-    @UniqueConstraint(name = "unique_stake_address_checkpoint",
+@Table(name = "epoch_stake_checkpoint", uniqueConstraints = {
+    @UniqueConstraint(name = "unique_stake_address_checkpoint_v2",
         columnNames = {"view"})
 })
 @Getter
@@ -26,8 +26,7 @@ import org.hibernate.Hibernate;
 @NoArgsConstructor
 @AllArgsConstructor
 @SuperBuilder(toBuilder = true)
-public class RewardCheckpoint extends BaseEntity {
-
+public class EpochStakeCheckpoint extends BaseEntity {
   @Column(name = "view", nullable = false)
   private String stakeAddress;
 
@@ -42,8 +41,8 @@ public class RewardCheckpoint extends BaseEntity {
     if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) {
       return false;
     }
-    RewardCheckpoint rewardCheckpoint = (RewardCheckpoint) o;
-    return id != null && Objects.equals(id, rewardCheckpoint.id);
+    EpochStakeCheckpoint epochCheckpoint = (EpochStakeCheckpoint) o;
+    return id != null && Objects.equals(id, epochCheckpoint.id);
   }
 
   @Override
