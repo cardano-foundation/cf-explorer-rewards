@@ -1,6 +1,7 @@
 package org.cardanofoundation.explorer.rewards.controller;
 
-import java.util.List;
+import java.util.ArrayList;
+import java.util.Set;
 
 import lombok.RequiredArgsConstructor;
 
@@ -19,7 +20,7 @@ public class RewardController {
   private final Reward3FetchingService reward3FetchingService;
 
   @PostMapping("/fetch")
-  public Boolean fetchRewards(@RequestBody List<String> stakeAddress) {
-    return reward3FetchingService.fetchData(stakeAddress);
+  public Boolean fetchRewards(@RequestBody Set<String> stakeAddressSet) {
+    return reward3FetchingService.fetchDataConcurrently(new ArrayList<>(stakeAddressSet));
   }
 }
