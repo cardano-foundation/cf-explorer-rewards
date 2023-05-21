@@ -4,9 +4,7 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -15,7 +13,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -49,19 +47,24 @@ public class Reward3FetchingServiceImpl implements Reward3FetchingService {
   final RewardCheckpointRepository rewardCheckpointRepository;
   final EpochRepository epochRepository;
 
-  @Value("${application.reward.fixed-thread-pool-size}")
-  int threadPoolSize;
-  @Value("${application.reward.list-size-each-thread}")
-  int subListSize;
-
   @Override
+  @Async
   @Transactional
-  public Boolean fetchData(List<String> stakeAddressList) {
+  public CompletableFuture<Boolean> fetchData(List<String> stakeAddressList) {
     var curTime = System.currentTimeMillis();
     try {
       Integer currentEpoch = epochRepository.findMaxEpoch();
 
       List<AccountRewards> accountRewardsList = getAccountRewards(stakeAddressList);
+
+      int rewardSize = accountRewardsList
+          .parallelStream()
+          .mapToInt(accountHistory -> accountHistory.getRewards().size())
+          .sum();
+
+      log.info("fetch {} reward by koios api: {} ms, with stake_address input size {}",
+          rewardSize, System.currentTimeMillis() - curTime,
+          stakeAddressList.size());
 
       Map<String, RewardCheckpoint> rewardCheckpointMap = getRewardCheckpointMap(stakeAddressList,
           accountRewardsList);
@@ -108,47 +111,10 @@ public class Reward3FetchingServiceImpl implements Reward3FetchingService {
           stakeAddressList.size());
     } catch (ApiException e) {
       log.error("Exception when fetching reward data", e);
-      return Boolean.FALSE;
+      return CompletableFuture.completedFuture(Boolean.FALSE);
     }
 
-    return Boolean.TRUE;
-  }
-
-  @Override
-  @Transactional(rollbackFor = Exception.class)
-  public Boolean fetchDataConcurrently(List<String> stakeAddressList) {
-    var curTime = System.currentTimeMillis();
-
-    if (stakeAddressList.size() <= subListSize) {
-      return fetchData(stakeAddressList);
-    }
-
-    var executorService = Executors.newFixedThreadPool(threadPoolSize);
-    var result = new AtomicBoolean(true);
-
-    for (int i = 0; i < stakeAddressList.size(); i += subListSize) {
-      int endIndex = Math.min(i + subListSize, stakeAddressList.size());
-      var sublist = stakeAddressList.subList(i, endIndex);
-
-      executorService.submit(() -> {
-        boolean threadResult = fetchData(sublist);
-        result.compareAndSet(true, threadResult);
-      });
-    }
-
-    executorService.shutdown();
-    try {
-        if (!executorService.awaitTermination(Long.MAX_VALUE, TimeUnit.MILLISECONDS)) {
-        executorService.shutdownNow();
-      }
-    } catch (InterruptedException e) {
-      log.warn("Exception when fetching reward data concurrently", e);
-      executorService.shutdownNow();
-    }
-
-    log.info("Fetch and save reward record concurrently by koios api: {} ms",
-        System.currentTimeMillis() - curTime);
-    return result.get();
+    return CompletableFuture.completedFuture(Boolean.TRUE);
   }
 
   @NotNull
