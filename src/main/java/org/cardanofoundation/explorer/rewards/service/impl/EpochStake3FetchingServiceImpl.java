@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -13,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -46,7 +48,8 @@ public class EpochStake3FetchingServiceImpl implements EpochStake3FetchingServic
 
   @Override
   @Transactional
-  public Boolean fetchData(List<String> stakeAddressList) {
+  @Async
+  public CompletableFuture<Boolean> fetchData(List<String> stakeAddressList) {
     List<EpochStake3> result = new ArrayList<>();
     try {
       var curTime = System.currentTimeMillis();
@@ -92,12 +95,12 @@ public class EpochStake3FetchingServiceImpl implements EpochStake3FetchingServic
               || Objects.equals(accountHistoryInner.getEpochNo(), currentEpoch)) {
             continue;
           }
-          var item = new EpochStake3();
+          var item = EpochStake3.builder()
+              .epochNo(accountHistoryInner.getEpochNo())
+              .addr(stakeAddressMap.get(accountHistory.getStakeAddress()))
+              .pool(poolHashMap.get(accountHistoryInner.getPoolId()))
+              .amount(new BigInteger(accountHistoryInner.getActiveStake())).build();
 
-          item.setEpochNo(accountHistoryInner.getEpochNo());
-          item.setAddr(stakeAddressMap.get(accountHistory.getStakeAddress()));
-          item.setPool(poolHashMap.get(accountHistoryInner.getPoolId()));
-          item.setAmount(new BigInteger(accountHistoryInner.getActiveStake()));
           result.add(item);
         }
       }
@@ -112,11 +115,12 @@ public class EpochStake3FetchingServiceImpl implements EpochStake3FetchingServic
           result.size(), System.currentTimeMillis() - curTime, stakeAddressList.size());
     } catch (ApiException e) {
       log.error("Exception when fetching epoch stake data", e);
-      return Boolean.FALSE;
+      return CompletableFuture.completedFuture(Boolean.FALSE);
     }
 
-    return Boolean.TRUE;
+    return CompletableFuture.completedFuture(Boolean.TRUE);
   }
+
 
   private Map<String, EpochStakeCheckpoint> getEpochStakeCheckpointMap(
       List<String> stakeAddressList,

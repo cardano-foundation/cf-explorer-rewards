@@ -1,10 +1,9 @@
 package org.cardanofoundation.explorer.rewards.service;
 
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 
 public interface Reward3FetchingService {
-  Boolean fetchData(List<String> stakeAddresses);
-
-  Boolean fetchDataConcurrently(List<String> stakeAddresses);
+  CompletableFuture<Boolean> fetchData(List<String> stakeAddresses);
 }
