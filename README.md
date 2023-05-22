@@ -9,5 +9,6 @@
 - POSTGRES_PASSWORD:database user password
 - SCHEMA: database schema
 - SPRING_PROFILES_ACTIVE: active profiles
-- FIXED_THEAD_POOL_SIZE: default thread pool size. Use to fetch reward data.
+- POOL_CORE_SIZE: the ThreadPoolExecutor's core pool size.
+- POOL_MAX_SIZE: the ThreadPoolExecutor's maximum pool size
 - LIST_SIZE_EACH_THREAD: batch size to fetch data each thread

@@ -13,7 +13,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import org.cardanofoundation.explorer.rewards.repository.StakeAddressRepository;
 import org.cardanofoundation.explorer.rewards.service.Reward3FetchingService;
 
 @Component
@@ -22,7 +21,6 @@ import org.cardanofoundation.explorer.rewards.service.Reward3FetchingService;
 @Slf4j
 public class Reward3ConcurrentFetching {
   final Reward3FetchingService reward3FetchingService;
-  final StakeAddressRepository stakeAddressRepository;
 
   @Value("${application.reward.list-size-each-thread}")
   int subListSize;

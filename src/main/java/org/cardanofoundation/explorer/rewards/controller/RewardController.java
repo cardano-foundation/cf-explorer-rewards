@@ -11,7 +11,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import org.cardanofoundation.explorer.rewards.concurrent.Reward3ConcurrentFetching;
-import org.cardanofoundation.explorer.rewards.service.Reward3FetchingService;
 
 @RestController
 @RequestMapping("/api/v1/rewards")

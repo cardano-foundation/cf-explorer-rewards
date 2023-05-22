@@ -46,11 +46,10 @@ spring:
     execution:
       pool:
         max-size: ${POOL_MAX_SIZE:12}
-        core-size: ${POOL_CORE_SIZE:12}
-        queue-capacity: ${QUEUE_CAPACITY:50}
+        core-size: ${POOL_CORE_SIZE:10}
       thread-name-prefix: Executorxx-
 application:
-  network: ${SCHEMA:mainet}
+  network: ${SCHEMA:mainnet}
   reward:
     list-size-each-thread: ${LIST_SIZE_EACH_THREAD:5}
   epoch-stake:
