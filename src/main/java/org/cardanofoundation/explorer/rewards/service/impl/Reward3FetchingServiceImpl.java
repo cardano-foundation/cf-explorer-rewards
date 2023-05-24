@@ -5,11 +5,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.cardanofoundation.explorer.consumercommon.entity.PoolHash;
+import org.cardanofoundation.explorer.consumercommon.entity.RewardCheckpoint;
 import org.cardanofoundation.explorer.consumercommon.entity.StakeAddress;
 import org.cardanofoundation.explorer.consumercommon.enumeration.RewardType;
 import org.cardanofoundation.explorer.rewards.config.KoiosClient;
 import org.cardanofoundation.explorer.rewards.entity.Reward3;
-import org.cardanofoundation.explorer.rewards.entity.RewardCheckpoint;
 import org.cardanofoundation.explorer.rewards.repository.*;
 import org.cardanofoundation.explorer.rewards.service.Reward3FetchingService;
 import org.jetbrains.annotations.NotNull;
@@ -69,7 +69,7 @@ public class Reward3FetchingServiceImpl implements Reward3FetchingService {
           rewardSize, System.currentTimeMillis() - curTime, stakeAddressListNeedFetchData.size());
 
       Map<String, RewardCheckpoint> rewardCheckpointMap = getRewardCheckpointMap(stakeAddressListNeedFetchData,
-          accountRewardsList);
+                                                                                 accountRewardsList);
 
       Map<String, StakeAddress> stakeAddressMap = getStakeAddressMap(stakeAddressListNeedFetchData);
 
