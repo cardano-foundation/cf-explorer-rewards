@@ -4,11 +4,12 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+
+import org.cardanofoundation.explorer.consumercommon.entity.EpochStakeCheckpoint;
 import org.cardanofoundation.explorer.consumercommon.entity.PoolHash;
 import org.cardanofoundation.explorer.consumercommon.entity.StakeAddress;
 import org.cardanofoundation.explorer.rewards.config.KoiosClient;
 import org.cardanofoundation.explorer.rewards.entity.EpochStake3;
-import org.cardanofoundation.explorer.rewards.entity.EpochStakeCheckpoint;
 import org.cardanofoundation.explorer.rewards.repository.*;
 import org.cardanofoundation.explorer.rewards.service.EpochStake3FetchingService;
 import org.jetbrains.annotations.NotNull;
