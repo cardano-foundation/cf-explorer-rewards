@@ -1,6 +1,6 @@
 # Infrastructure domain
 infrastructure:
-  host: ${HOST:10.4.10.112}
+  host: ${POSTGRES_HOST:10.4.10.112}
 spring:
   # Datasource specific configs
   datasource:
@@ -37,7 +37,7 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
-        default_schema: ${SCHEMA:mainnet}
+        default_schema: ${POSTGRES_SCHEMA:mainnet}
         show_sql: false
         format_sql: true
         jdbc:
@@ -62,7 +62,7 @@ spring:
     locations: db/migration/dev/final/
     validate-on-migrate: ${FLYWAY_VALIDATE:false}
 application:
-  network: ${SCHEMA:mainnet}
+  network: ${NETWORK:mainnet}
   reward:
     list-size-each-thread: ${LIST_SIZE_EACH_THREAD:5}
   epoch-stake:

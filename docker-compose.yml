@@ -1,27 +1,23 @@
 version: '3.9'
 
 services:
-  cardano-jobs:
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-    image: cardano-jobs-${NETWORK_NAME}
+  cardano-rewards:
     restart: always
+    image: cardano-rewards-${NETWORK}
     build:
       context: .
     environment:
       - SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE}
-      - HOST=${HOST}
+      - SERVER_PORT=${SERVER_PORT}
+      - NETWORK=${NETWORK}
+      - POSTGRES_HOST=${POSTGRES_HOST}
       - POSTGRES_PORT=${POSTGRES_PORT}
-      - POSTGRES_DB=${POSTGRES_DB}
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
       - POSTGRES_SCHEMA=${POSTGRES_SCHEMA}
-      - BOOTSTRAP_SERVER=${BOOTSTRAP_SERVER}
-
-      - INSERT_POOL_DATA_DELAY=${INSERT_POOL_DATA_DELAY}
-
-      - NETWORK_NAME=${NETWORK_NAME}
-
-      - REDIS_MASTER_NAME=${REDIS_MASTER_NAME}
-      - REDIS_SENTINEL_PASS=${REDIS_SENTINEL_PASS}
-      - REDIS_SENTINEL_HOST=${REDIS_SENTINEL_HOST}
+      - LIST_SIZE_EACH_THREAD=${LIST_SIZE_EACH_THREAD}
+      - POOL_MAX_SIZE=${POOL_MAX_SIZE}
+      - POOL_CORE_SIZE=${POOL_CORE_SIZE}
+      - FLYWAY_ENABLE=${FLYWAY_ENABLE}
+      - FLYWAY_VALIDATE=${FLYWAY_VALIDATE}

@@ -1,13 +1,14 @@
 # Cardano Explorer Rewards
 
 ## Environment value
-- HOST: database host
 - SERVER_PORT: port running
+- POSTGRES_HOST: database host
 - POSTGRES_PORT: database port
 - POSTGRES_DB: database name
 - POSTGRES_USER: database access username
 - POSTGRES_PASSWORD:database user password
-- SCHEMA: database schema
+- POSTGRES_SCHEMA: database schema
+- NETWORK: network type
 - SPRING_PROFILES_ACTIVE: active profiles
 - POOL_CORE_SIZE: the ThreadPoolExecutor's core pool size
 - POOL_MAX_SIZE: the ThreadPoolExecutor's maximum pool size

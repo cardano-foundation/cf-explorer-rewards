@@ -6,10 +6,7 @@ RUN mvn verify clean --fail-never
 COPY . /app
 RUN mvn clean package -DskipTests
 
-FROM openjdk:11-jdk-slim AS runtime
-COPY --from=build /app/target/*.jar /app/job.jar
+FROM openjdk:17-jdk-slim AS runtime
+COPY --from=build /app/target/*.jar /app/cardano-rewards.jar
 WORKDIR /app
-
-ENV SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE}
-
-ENTRYPOINT ["java", "-jar", "job.jar"]
+ENTRYPOINT ["java", "-jar", "cardano-rewards.jar"]
