@@ -31,7 +31,7 @@ public class RewardConcurrentFetching {
 
   public Boolean fetchDataConcurrently(List<String> stakeAddressList) {
     var curTime = System.currentTimeMillis();
-
+    // fetch from koios concurrently
     List<CompletableFuture<List<AccountRewards>>> futures = new ArrayList<>();
 
     for (int i = 0; i < stakeAddressList.size(); i += subListSize) {
@@ -46,6 +46,7 @@ public class RewardConcurrentFetching {
         return Boolean.FALSE;
       }
     }
+    // wait until all request complete
     var allFutures = CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
 
     CompletableFuture<List<AccountRewards>> combinedFuture = allFutures.thenApply(v ->
@@ -54,7 +55,7 @@ public class RewardConcurrentFetching {
             .flatMap(List::stream)
             .collect(Collectors.toList())
     );
-
+    // Combine the results and save them to the database
     try {
       List<AccountRewards> accountRewardsList = combinedFuture.get();
       rewardFetchingService.storeData(stakeAddressList, accountRewardsList);

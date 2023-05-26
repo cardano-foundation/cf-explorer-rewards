@@ -170,6 +170,12 @@ public class RewardFetchingServiceImpl implements RewardFetchingService {
         .collect(Collectors.toMap(PoolHash::getView, Function.identity()));
   }
 
+  /**
+   * fetch data using koios java client
+   * @param stakeAddressList
+   * @return
+   * @throws ApiException
+   */
   private List<AccountRewards> getAccountRewards(List<String> stakeAddressList)
       throws ApiException {
     return koiosClient
@@ -180,12 +186,14 @@ public class RewardFetchingServiceImpl implements RewardFetchingService {
 
   private Map<String, RewardCheckpoint> getRewardCheckpointMap(List<String> stakeAddressList,
                                                                List<AccountRewards> accountRewardsList) {
-
+    // get reward checkpoint map with stakeAddressList
     Map<String, RewardCheckpoint> rewardCheckpointMap = rewardCheckpointRepository
         .findByStakeAddressIn(stakeAddressList)
         .stream()
         .collect(Collectors.toMap(RewardCheckpoint::getStakeAddress, Function.identity()));
 
+    // if an stake address not in checkpoint table,
+    // create a rewardCheckpoint with stake address equal to that and epoch_checkpoint = 0
     List<RewardCheckpoint> rewardCheckpoints = accountRewardsList
         .stream()
         .filter(
@@ -195,13 +203,20 @@ public class RewardFetchingServiceImpl implements RewardFetchingService {
             .epochCheckpoint(0)
             .build())
         .collect(Collectors.toList());
-
+    // put all into result
     rewardCheckpointMap.putAll(rewardCheckpoints.stream().collect(
         Collectors.toMap(RewardCheckpoint::getStakeAddress, Function.identity())));
 
     return rewardCheckpointMap;
   }
 
+  /**
+   *  get stake address list that are not in the checkpoint table
+   *  or in the checkpoint table but have an epoch checkpoint value < (current epoch - 1)
+   * @param stakeAddressList
+   * @param currentEpoch
+   * @return
+   */
   private List<String> getStakeAddressListNeedFetchData(List<String> stakeAddressList,
                                                         int currentEpoch) {
     Map<String, RewardCheckpoint> rewardCheckpointMap = rewardCheckpointRepository
@@ -217,6 +232,10 @@ public class RewardFetchingServiceImpl implements RewardFetchingService {
         .collect(Collectors.toList());
   }
 
+  /**
+   * Divide the reward list into parts and save them to the database concurrently
+   * @param rewards
+   */
   private void saveRewardsConcurrently(List<Reward> rewards) {
     ExecutorService executorService = Executors.newFixedThreadPool(savingRewardThreadNum);
 
