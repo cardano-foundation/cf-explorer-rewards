@@ -30,7 +30,7 @@ public class EpochStakeConcurrentFetching {
 
   public Boolean fetchDataConcurrently(List<String> stakeAddressList) {
     var curTime = System.currentTimeMillis();
-
+    // fetch from koios concurrently
     List<CompletableFuture<List<AccountHistory>>> futures = new ArrayList<>();
 
     for (int i = 0; i < stakeAddressList.size(); i += subListSize) {
@@ -45,6 +45,7 @@ public class EpochStakeConcurrentFetching {
         return Boolean.FALSE;
       }
     }
+    // wait until all request complete
     var allFutures = CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
 
     CompletableFuture<List<AccountHistory>> combinedFuture = allFutures.thenApply(v ->
@@ -53,7 +54,7 @@ public class EpochStakeConcurrentFetching {
             .flatMap(List::stream)
             .collect(Collectors.toList())
     );
-
+    // Combine the results and save them to the database
     try {
       List<AccountHistory> accountHistoryList = combinedFuture.get();
       epochStakeFetchingService.storeData(stakeAddressList, accountHistoryList);
