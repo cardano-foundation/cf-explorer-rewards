@@ -23,17 +23,17 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import org.cardanofoundation.explorer.consumercommon.entity.PoolHash;
+import org.cardanofoundation.explorer.consumercommon.entity.Reward;
 import org.cardanofoundation.explorer.consumercommon.entity.RewardCheckpoint;
 import org.cardanofoundation.explorer.consumercommon.entity.StakeAddress;
 import org.cardanofoundation.explorer.consumercommon.enumeration.RewardType;
 import org.cardanofoundation.explorer.rewards.config.KoiosClient;
-import org.cardanofoundation.explorer.rewards.entity.Reward3;
 import org.cardanofoundation.explorer.rewards.repository.EpochRepository;
 import org.cardanofoundation.explorer.rewards.repository.PoolHashRepository;
-import org.cardanofoundation.explorer.rewards.repository.Reward3Repository;
+import org.cardanofoundation.explorer.rewards.repository.RewardRepository;
 import org.cardanofoundation.explorer.rewards.repository.RewardCheckpointRepository;
 import org.cardanofoundation.explorer.rewards.repository.StakeAddressRepository;
-import org.cardanofoundation.explorer.rewards.service.Reward3FetchingService;
+import org.cardanofoundation.explorer.rewards.service.RewardFetchingService;
 import org.jetbrains.annotations.NotNull;
 import rest.koios.client.backend.api.account.model.AccountReward;
 import rest.koios.client.backend.api.account.model.AccountRewards;
@@ -43,13 +43,13 @@ import rest.koios.client.backend.api.base.exception.ApiException;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @RequiredArgsConstructor
 @Slf4j
-public class Reward3FetchingServiceImpl implements Reward3FetchingService {
+public class RewardFetchingServiceImpl implements RewardFetchingService {
   private static final Object lock = new Object();
 
   final KoiosClient koiosClient;
   final StakeAddressRepository stakeAddressRepository;
   final PoolHashRepository poolHashRepository;
-  final Reward3Repository reward3Repository;
+  final RewardRepository rewardRepository;
   final RewardCheckpointRepository rewardCheckpointRepository;
   final EpochRepository epochRepository;
 
@@ -112,7 +112,7 @@ public class Reward3FetchingServiceImpl implements Reward3FetchingService {
           stakeAddressList,
           accountRewardsList);
 
-      List<Reward3> saveData = accountRewardsList.parallelStream()
+      List<Reward> saveData = accountRewardsList.parallelStream()
           .flatMap(accountRewards -> {
             var rewardCheckpoint = rewardCheckpointMap.get(accountRewards.getStakeAddress());
             if (rewardCheckpoint == null) {
@@ -122,7 +122,7 @@ public class Reward3FetchingServiceImpl implements Reward3FetchingService {
                 .filter(accountReward -> accountReward.getEarnedEpoch()
                     > rewardCheckpoint.getEpochCheckpoint())
                 .map(accountReward ->
-                    Reward3.builder()
+                  Reward.builder()
                         .pool(poolHashMap.get(accountReward.getPoolId()))
                         .addr(stakeAddressMap.get(accountRewards.getStakeAddress()))
                         .amount(new BigInteger(accountReward.getAmount()))
@@ -141,7 +141,7 @@ public class Reward3FetchingServiceImpl implements Reward3FetchingService {
       if (rewardParallelSaving) {
         saveRewardsConcurrently(saveData);
       } else {
-        reward3Repository.saveAll(saveData);
+        rewardRepository.saveAll(saveData);
       }
 
       rewardCheckpointRepository.saveAll(rewardCheckpointMap.values());
@@ -217,23 +217,23 @@ public class Reward3FetchingServiceImpl implements Reward3FetchingService {
         .collect(Collectors.toList());
   }
 
-  private void saveRewardsConcurrently(List<Reward3> rewards) {
+  private void saveRewardsConcurrently(List<Reward> rewards) {
     ExecutorService executorService = Executors.newFixedThreadPool(savingRewardThreadNum);
 
     try {
       List<CompletableFuture<Void>> saveFutures = new ArrayList<>();
 
 
-      List<List<Reward3>> batches = new ArrayList<>();
+      List<List<Reward>> batches = new ArrayList<>();
       for (int i = 0; i < rewards.size(); i += rewardSubListSize) {
         int endIndex = Math.min(i + rewardSubListSize, rewards.size());
-        List<Reward3> batch = rewards.subList(i, endIndex);
+        List<Reward> batch = rewards.subList(i, endIndex);
         batches.add(batch);
       }
 
-      for (List<Reward3> batch : batches) {
+      for (List<Reward> batch : batches) {
         CompletableFuture<Void> saveFuture = CompletableFuture.runAsync(() -> {
-          reward3Repository.saveAll(batch);
+          rewardRepository.saveAll(batch);
         }, executorService);
 
         saveFutures.add(saveFuture);

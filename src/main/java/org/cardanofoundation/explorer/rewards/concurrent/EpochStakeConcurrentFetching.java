@@ -14,32 +14,31 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import org.cardanofoundation.explorer.rewards.service.Reward3FetchingService;
-import rest.koios.client.backend.api.account.model.AccountRewards;
+import org.cardanofoundation.explorer.rewards.service.EpochStakeFetchingService;
+import rest.koios.client.backend.api.account.model.AccountHistory;
 import rest.koios.client.backend.api.base.exception.ApiException;
 
 @Component
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @RequiredArgsConstructor
 @Slf4j
-public class Reward3ConcurrentFetching {
+public class EpochStakeConcurrentFetching {
+  final EpochStakeFetchingService epochStakeFetchingService;
 
-  final Reward3FetchingService reward3FetchingService;
-
-  @Value("${application.reward.list-size-each-thread}")
+  @Value("${application.epoch-stake.list-size-each-thread}")
   int subListSize;
 
   public Boolean fetchDataConcurrently(List<String> stakeAddressList) {
     var curTime = System.currentTimeMillis();
 
-    List<CompletableFuture<List<AccountRewards>>> futures = new ArrayList<>();
+    List<CompletableFuture<List<AccountHistory>>> futures = new ArrayList<>();
 
     for (int i = 0; i < stakeAddressList.size(); i += subListSize) {
       int endIndex = Math.min(i + subListSize, stakeAddressList.size());
       var sublist = stakeAddressList.subList(i, endIndex);
 
       try {
-        CompletableFuture<List<AccountRewards>> future = reward3FetchingService.fetchData(sublist);
+        CompletableFuture<List<AccountHistory>> future = epochStakeFetchingService.fetchData(sublist);
         futures.add(future);
       } catch (ApiException e) {
         log.info("ApiException: {}", e.getMessage());
@@ -48,7 +47,7 @@ public class Reward3ConcurrentFetching {
     }
     var allFutures = CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
 
-    CompletableFuture<List<AccountRewards>> combinedFuture = allFutures.thenApply(v ->
+    CompletableFuture<List<AccountHistory>> combinedFuture = allFutures.thenApply(v ->
         futures.stream()
             .map(CompletableFuture::join)
             .flatMap(List::stream)
@@ -56,8 +55,8 @@ public class Reward3ConcurrentFetching {
     );
 
     try {
-      List<AccountRewards> accountRewardsList = combinedFuture.get();
-      reward3FetchingService.storeData(stakeAddressList, accountRewardsList);
+      List<AccountHistory> accountHistoryList = combinedFuture.get();
+      epochStakeFetchingService.storeData(stakeAddressList, accountHistoryList);
     } catch (InterruptedException | ExecutionException e) {
       Thread.currentThread().interrupt();
       return Boolean.FALSE;
@@ -65,10 +64,9 @@ public class Reward3ConcurrentFetching {
       return Boolean.FALSE;
     }
 
-    log.info("Fetch and save reward record concurrently by koios api: {} ms",
+    log.info("Fetch and save epochStake record concurrently by koios api: {} ms",
         System.currentTimeMillis() - curTime);
 
     return Boolean.TRUE;
-
   }
 }
