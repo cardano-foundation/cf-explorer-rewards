@@ -23,17 +23,17 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import org.cardanofoundation.explorer.consumercommon.entity.EpochStake;
 import org.cardanofoundation.explorer.consumercommon.entity.EpochStakeCheckpoint;
 import org.cardanofoundation.explorer.consumercommon.entity.PoolHash;
 import org.cardanofoundation.explorer.consumercommon.entity.StakeAddress;
 import org.cardanofoundation.explorer.rewards.config.KoiosClient;
-import org.cardanofoundation.explorer.rewards.entity.EpochStake3;
 import org.cardanofoundation.explorer.rewards.repository.EpochRepository;
-import org.cardanofoundation.explorer.rewards.repository.EpochStake3Repository;
+import org.cardanofoundation.explorer.rewards.repository.EpochStakeRepository;
 import org.cardanofoundation.explorer.rewards.repository.EpochStakeCheckpointRepository;
 import org.cardanofoundation.explorer.rewards.repository.PoolHashRepository;
 import org.cardanofoundation.explorer.rewards.repository.StakeAddressRepository;
-import org.cardanofoundation.explorer.rewards.service.EpochStake3FetchingService;
+import org.cardanofoundation.explorer.rewards.service.EpochStakeFetchingService;
 import org.jetbrains.annotations.NotNull;
 import rest.koios.client.backend.api.account.model.AccountHistory;
 import rest.koios.client.backend.api.account.model.AccountHistoryInner;
@@ -43,13 +43,13 @@ import rest.koios.client.backend.api.base.exception.ApiException;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @RequiredArgsConstructor
 @Slf4j
-public class EpochStake3FetchingServiceImpl implements EpochStake3FetchingService {
+public class EpochStakeFetchingServiceImpl implements EpochStakeFetchingService {
   private static final Object lock = new Object();
 
   final StakeAddressRepository stakeAddressRepository;
   final KoiosClient koiosClient;
   final PoolHashRepository poolHashRepository;
-  final EpochStake3Repository epochStakeRepository;
+  final EpochStakeRepository epochStakeRepository;
   final EpochStakeCheckpointRepository epochStakeCheckpointRepository;
   final EpochRepository epochRepository;
 
@@ -110,7 +110,7 @@ public class EpochStake3FetchingServiceImpl implements EpochStake3FetchingServic
       Map<String, EpochStakeCheckpoint> epochStakeCheckpointMap =
           getEpochStakeCheckpointMap(stakeAddressList, accountHistoryList);
 
-      List<EpochStake3> saveData = accountHistoryList.parallelStream()
+      List<EpochStake> saveData = accountHistoryList.parallelStream()
           .flatMap(accountHistory -> {
             var epochStakeCheckpoint = epochStakeCheckpointMap.get(accountHistory.getStakeAddress());
             if (epochStakeCheckpoint == null) {
@@ -122,7 +122,7 @@ public class EpochStake3FetchingServiceImpl implements EpochStake3FetchingServic
                     accountHistoryInner.getEpochNo() > epochStakeCheckpoint.getEpochCheckpoint()
                         && !Objects.equals(accountHistoryInner.getEpochNo(), currentEpoch))
                 .map(accountHistoryInner ->
-                    EpochStake3.builder()
+                         EpochStake.builder()
                         .epochNo(accountHistoryInner.getEpochNo())
                         .addr(stakeAddressMap.get(accountHistory.getStakeAddress()))
                         .pool(poolHashMap.get(accountHistoryInner.getPoolId()))
@@ -214,20 +214,20 @@ public class EpochStake3FetchingServiceImpl implements EpochStake3FetchingServic
         .collect(Collectors.toList());
   }
 
-  private void saveEpochStakesConcurrently(List<EpochStake3> epochStakeList) {
+  private void saveEpochStakesConcurrently(List<EpochStake> epochStakeList) {
     ExecutorService executorService = Executors.newFixedThreadPool(savingEpochStakeThreadNum);
 
     try {
       List<CompletableFuture<Void>> saveFutures = new ArrayList<>();
 
-      List<List<EpochStake3>> batches = new ArrayList<>();
+      List<List<EpochStake>> batches = new ArrayList<>();
       for (int i = 0; i < epochStakeList.size(); i += epochStakeSubListSize) {
         int endIndex = Math.min(i + epochStakeSubListSize, epochStakeList.size());
-        List<EpochStake3> batch = epochStakeList.subList(i, endIndex);
+        List<EpochStake> batch = epochStakeList.subList(i, endIndex);
         batches.add(batch);
       }
 
-      for (List<EpochStake3> batch : batches) {
+      for (List<EpochStake> batch : batches) {
         CompletableFuture<Void> saveFuture = CompletableFuture.runAsync(() -> {
           epochStakeRepository.saveAll(batch);
         }, executorService);

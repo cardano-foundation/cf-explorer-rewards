@@ -10,17 +10,17 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import org.cardanofoundation.explorer.rewards.concurrent.Reward3ConcurrentFetching;
+import org.cardanofoundation.explorer.rewards.concurrent.RewardConcurrentFetching;
 
 @RestController
 @RequestMapping("/api/v1/rewards")
 @RequiredArgsConstructor
 public class RewardController {
 
-  private final Reward3ConcurrentFetching reward3ConcurrentFetching;
+  private final RewardConcurrentFetching rewardConcurrentFetching;
 
   @PostMapping("/fetch")
   public Boolean fetchRewards(@RequestBody Set<String> stakeAddressSet) {
-    return reward3ConcurrentFetching.fetchDataConcurrently(new ArrayList<>(stakeAddressSet));
+    return rewardConcurrentFetching.fetchDataConcurrently(new ArrayList<>(stakeAddressSet));
   }
 }
