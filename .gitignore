@@ -41,7 +41,9 @@ build/
 !Dockerfile
 
 ### Environment variables ###
-.env
+.env*
+!.env.example
+!Makefile
 
 ### Maven ###
 .m2/
