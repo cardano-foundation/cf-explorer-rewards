@@ -1,0 +1,25 @@
+package org.cardanofoundation.explorer.rewards.controller;
+
+import java.util.ArrayList;
+import java.util.Set;
+
+import lombok.RequiredArgsConstructor;
+
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import org.cardanofoundation.explorer.rewards.concurrent.PoolHistoryConcurrentFetching;
+
+@RestController
+@RequestMapping("/api/v1/pool-history")
+@RequiredArgsConstructor
+public class PoolHistoryController {
+  private final PoolHistoryConcurrentFetching poolHistoryConcurrentFetching;
+
+  @PostMapping("/fetch")
+  public Boolean fetchRewards(@RequestBody Set<String> poolIds) {
+    return poolHistoryConcurrentFetching.fetchDataConcurrently(new ArrayList<>(poolIds));
+  }
+}
