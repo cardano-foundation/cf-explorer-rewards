@@ -44,6 +44,7 @@ import rest.koios.client.backend.api.base.exception.ApiException;
 @RequiredArgsConstructor
 @Slf4j
 public class RewardFetchingServiceImpl implements RewardFetchingService {
+
   private static final Object lock = new Object();
 
   final KoiosClient koiosClient;
@@ -108,9 +109,7 @@ public class RewardFetchingServiceImpl implements RewardFetchingService {
 
       Map<String, PoolHash> poolHashMap = getPoolHashMap(accountRewardsList);
 
-      Map<String, RewardCheckpoint> rewardCheckpointMap = getRewardCheckpointMap(
-          stakeAddressList,
-          accountRewardsList);
+      Map<String, RewardCheckpoint> rewardCheckpointMap = getRewardCheckpointMap(stakeAddressList);
 
       List<Reward> saveData = accountRewardsList.parallelStream()
           .flatMap(accountRewards -> {
@@ -122,7 +121,7 @@ public class RewardFetchingServiceImpl implements RewardFetchingService {
                 .filter(accountReward -> accountReward.getEarnedEpoch()
                     > rewardCheckpoint.getEpochCheckpoint())
                 .map(accountReward ->
-                  Reward.builder()
+                    Reward.builder()
                         .pool(poolHashMap.get(accountReward.getPoolId()))
                         .addr(stakeAddressMap.get(accountRewards.getStakeAddress()))
                         .amount(new BigInteger(accountReward.getAmount()))
@@ -172,6 +171,7 @@ public class RewardFetchingServiceImpl implements RewardFetchingService {
 
   /**
    * fetch data using koios java client
+   *
    * @param stakeAddressList
    * @return
    * @throws ApiException
@@ -184,8 +184,7 @@ public class RewardFetchingServiceImpl implements RewardFetchingService {
         .getValue();
   }
 
-  private Map<String, RewardCheckpoint> getRewardCheckpointMap(List<String> stakeAddressList,
-                                                               List<AccountRewards> accountRewardsList) {
+  private Map<String, RewardCheckpoint> getRewardCheckpointMap(List<String> stakeAddressList) {
     // get reward checkpoint map with stakeAddressList
     Map<String, RewardCheckpoint> rewardCheckpointMap = rewardCheckpointRepository
         .findByStakeAddressIn(stakeAddressList)
@@ -194,12 +193,12 @@ public class RewardFetchingServiceImpl implements RewardFetchingService {
 
     // if an stake address not in checkpoint table,
     // create a rewardCheckpoint with stake address equal to that and epoch_checkpoint = 0
-    List<RewardCheckpoint> rewardCheckpoints = accountRewardsList
+    List<RewardCheckpoint> rewardCheckpoints = stakeAddressList
         .stream()
         .filter(
-            accountRewards -> !rewardCheckpointMap.containsKey(accountRewards.getStakeAddress()))
-        .map(accountRewards -> RewardCheckpoint.builder()
-            .stakeAddress(accountRewards.getStakeAddress())
+            stakeAddress -> !rewardCheckpointMap.containsKey(stakeAddress))
+        .map(stakeAddress -> RewardCheckpoint.builder()
+            .stakeAddress(stakeAddress)
             .epochCheckpoint(0)
             .build())
         .collect(Collectors.toList());
@@ -211,8 +210,9 @@ public class RewardFetchingServiceImpl implements RewardFetchingService {
   }
 
   /**
-   *  get stake address list that are not in the checkpoint table
-   *  or in the checkpoint table but have an epoch checkpoint value < (current epoch - 1)
+   * get stake address list that are not in the checkpoint table or in the checkpoint table but have
+   * an epoch checkpoint value < (current epoch - 1)
+   *
    * @param stakeAddressList
    * @param currentEpoch
    * @return
@@ -234,6 +234,7 @@ public class RewardFetchingServiceImpl implements RewardFetchingService {
 
   /**
    * Divide the reward list into parts and save them to the database concurrently
+   *
    * @param rewards
    */
   private void saveRewardsConcurrently(List<Reward> rewards) {
@@ -241,7 +242,6 @@ public class RewardFetchingServiceImpl implements RewardFetchingService {
 
     try {
       List<CompletableFuture<Void>> saveFutures = new ArrayList<>();
-
 
       List<List<Reward>> batches = new ArrayList<>();
       for (int i = 0; i < rewards.size(); i += rewardSubListSize) {
