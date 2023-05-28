@@ -45,7 +45,8 @@ import rest.koios.client.backend.api.base.exception.ApiException;
 @Slf4j
 public class RewardFetchingServiceImpl implements RewardFetchingService {
 
-  private static final Object lock = new Object();
+  private static final Object lock1 = new Object();
+  private static final Object lock2 = new Object();
 
   final KoiosClient koiosClient;
   final StakeAddressRepository stakeAddressRepository;
@@ -97,10 +98,21 @@ public class RewardFetchingServiceImpl implements RewardFetchingService {
   public void storeData(List<String> stakeAddressList, List<AccountRewards> accountRewardsList) {
 
     if (accountRewardsList.isEmpty()) {
+      synchronized (lock1) {
+        Integer currentEpoch = epochRepository.findMaxEpoch();
+
+        Map<String, RewardCheckpoint> rewardCheckpointMap = getRewardCheckpointMap(stakeAddressList);
+
+        rewardCheckpointMap
+            .values()
+            .forEach(rewardCheckpoint -> rewardCheckpoint.setEpochCheckpoint(currentEpoch - 1));
+
+        rewardCheckpointRepository.saveAll(rewardCheckpointMap.values());
+      }
       return;
     }
 
-    synchronized (lock) {
+    synchronized (lock2) {
       var curTime = System.currentTimeMillis();
 
       Integer currentEpoch = epochRepository.findMaxEpoch();
