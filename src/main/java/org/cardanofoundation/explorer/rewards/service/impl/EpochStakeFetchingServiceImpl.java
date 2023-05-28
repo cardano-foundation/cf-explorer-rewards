@@ -44,6 +44,7 @@ import rest.koios.client.backend.api.base.exception.ApiException;
 @RequiredArgsConstructor
 @Slf4j
 public class EpochStakeFetchingServiceImpl implements EpochStakeFetchingService {
+
   private static final Object lock = new Object();
 
   final StakeAddressRepository stakeAddressRepository;
@@ -107,12 +108,13 @@ public class EpochStakeFetchingServiceImpl implements EpochStakeFetchingService 
 
       Map<String, StakeAddress> stakeAddressMap = getStakeAddressMap(stakeAddressList);
 
-      Map<String, EpochStakeCheckpoint> epochStakeCheckpointMap =
-          getEpochStakeCheckpointMap(stakeAddressList, accountHistoryList);
+      Map<String, EpochStakeCheckpoint> epochStakeCheckpointMap = getEpochStakeCheckpointMap(
+          stakeAddressList);
 
       List<EpochStake> saveData = accountHistoryList.parallelStream()
           .flatMap(accountHistory -> {
-            var epochStakeCheckpoint = epochStakeCheckpointMap.get(accountHistory.getStakeAddress());
+            var epochStakeCheckpoint = epochStakeCheckpointMap.get(
+                accountHistory.getStakeAddress());
             if (epochStakeCheckpoint == null) {
               return Stream.empty();
             }
@@ -122,7 +124,7 @@ public class EpochStakeFetchingServiceImpl implements EpochStakeFetchingService 
                     accountHistoryInner.getEpochNo() > epochStakeCheckpoint.getEpochCheckpoint()
                         && !Objects.equals(accountHistoryInner.getEpochNo(), currentEpoch))
                 .map(accountHistoryInner ->
-                         EpochStake.builder()
+                    EpochStake.builder()
                         .epochNo(accountHistoryInner.getEpochNo())
                         .addr(stakeAddressMap.get(accountHistory.getStakeAddress()))
                         .pool(poolHashMap.get(accountHistoryInner.getPoolId()))
@@ -148,8 +150,7 @@ public class EpochStakeFetchingServiceImpl implements EpochStakeFetchingService 
 
 
   private Map<String, EpochStakeCheckpoint> getEpochStakeCheckpointMap(
-      List<String> stakeAddressList,
-      List<AccountHistory> accountHistoryList) {
+      List<String> stakeAddressList) {
     // get epoch stake checkpoint map with stakeAddressList
     Map<String, EpochStakeCheckpoint> epochStakeCheckpointMap = epochStakeCheckpointRepository
         .findByStakeAddressIn(stakeAddressList)
@@ -158,13 +159,12 @@ public class EpochStakeFetchingServiceImpl implements EpochStakeFetchingService 
 
     // if an stake address not in checkpoint table,
     // create a epochStakeCheckpoint with stake address equal to that and epoch_checkpoint = 0
-    List<EpochStakeCheckpoint> epochStakeCheckpoints = accountHistoryList
+    List<EpochStakeCheckpoint> epochStakeCheckpoints = stakeAddressList
         .stream()
         .filter(
-            accountEpochStakes -> !epochStakeCheckpointMap.containsKey(
-                accountEpochStakes.getStakeAddress()))
-        .map(accountEpochStakes -> EpochStakeCheckpoint.builder()
-            .stakeAddress(accountEpochStakes.getStakeAddress())
+            stakeAddress -> !epochStakeCheckpointMap.containsKey(stakeAddress))
+        .map(stakeAddress -> EpochStakeCheckpoint.builder()
+            .stakeAddress(stakeAddress)
             .epochCheckpoint(0)
             .build())
         .collect(Collectors.toList());
@@ -196,6 +196,7 @@ public class EpochStakeFetchingServiceImpl implements EpochStakeFetchingService 
 
   /**
    * fetch data using koios java client
+   *
    * @param stakeAddressList
    * @return
    * @throws ApiException
@@ -208,8 +209,9 @@ public class EpochStakeFetchingServiceImpl implements EpochStakeFetchingService 
   }
 
   /**
-   *  get stake address list that are not in the checkpoint table
-   *  or in the checkpoint table but have an epoch checkpoint value < (current epoch - 1)
+   * get stake address list that are not in the checkpoint table or in the checkpoint table but have
+   * an epoch checkpoint value < (current epoch - 1)
+   *
    * @param stakeAddressList
    * @param currentEpoch
    * @return
@@ -231,6 +233,7 @@ public class EpochStakeFetchingServiceImpl implements EpochStakeFetchingService 
 
   /**
    * Divide the epochStake list into parts and save them to the database concurrently
+   *
    * @param epochStakeList
    */
   private void saveEpochStakesConcurrently(List<EpochStake> epochStakeList) {
