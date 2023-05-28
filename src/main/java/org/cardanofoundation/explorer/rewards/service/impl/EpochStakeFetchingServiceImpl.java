@@ -45,7 +45,8 @@ import rest.koios.client.backend.api.base.exception.ApiException;
 @Slf4j
 public class EpochStakeFetchingServiceImpl implements EpochStakeFetchingService {
 
-  private static final Object lock = new Object();
+  private static final Object lock1 = new Object();
+  private static final Object lock2 = new Object();
 
   final StakeAddressRepository stakeAddressRepository;
   final KoiosClient koiosClient;
@@ -97,9 +98,18 @@ public class EpochStakeFetchingServiceImpl implements EpochStakeFetchingService 
   @Transactional(rollbackFor = {Exception.class})
   public void storeData(List<String> stakeAddressList, List<AccountHistory> accountHistoryList) {
     if (accountHistoryList.isEmpty()) {
+      synchronized (lock1) {
+        Integer currentEpoch = epochRepository.findMaxEpoch();
+        Map<String, EpochStakeCheckpoint> epochStakeCheckpointMap = getEpochStakeCheckpointMap(
+            stakeAddressList);
+        epochStakeCheckpointMap
+            .values()
+            .forEach(epochCheckpoint -> epochCheckpoint.setEpochCheckpoint(currentEpoch - 1));
+        epochStakeCheckpointRepository.saveAll(epochStakeCheckpointMap.values());
+      }
       return;
     }
-    synchronized (lock) {
+    synchronized (lock2) {
       var curTime = System.currentTimeMillis();
 
       Integer currentEpoch = epochRepository.findMaxEpoch();
