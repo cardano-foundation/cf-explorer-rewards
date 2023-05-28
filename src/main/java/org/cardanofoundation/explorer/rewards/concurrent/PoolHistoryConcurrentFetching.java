@@ -3,20 +3,16 @@ package org.cardanofoundation.explorer.rewards.concurrent;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.stream.Collectors;
 
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Component;
 
-import org.cardanofoundation.explorer.consumercommon.entity.PoolHash;
-import org.cardanofoundation.explorer.rewards.repository.PoolHashRepository;
 import org.cardanofoundation.explorer.rewards.service.PoolHistoryFetchingService;
+import rest.koios.client.backend.api.base.exception.ApiException;
 
 @Component
 @FieldDefaults(level = AccessLevel.PRIVATE)
@@ -25,13 +21,11 @@ import org.cardanofoundation.explorer.rewards.service.PoolHistoryFetchingService
 public class PoolHistoryConcurrentFetching {
 
   final PoolHistoryFetchingService poolHistoryFetchingService;
-  final PoolHashRepository poolHashRepository;
 
-  public Boolean fetchDataConcurrently(List<String> poolIds) {
+  public Boolean fetchDataConcurrently(List<String> poolIds) throws ApiException {
+    //todo: (important) validate poolIds
     var curTime = System.currentTimeMillis();
-    var poolPage = poolHashRepository.findAll(PageRequest.of(0, 50, Sort.by("id")));
-    poolIds = poolPage.stream().map(PoolHash::getView).collect(
-        Collectors.toList());
+
     List<String> poolIdListNeedFetchData = poolHistoryFetchingService.getPoolIdListNeedFetchData(
         poolIds);
 
@@ -43,7 +37,14 @@ public class PoolHistoryConcurrentFetching {
     List<CompletableFuture<Boolean>> futures = new ArrayList<>();
 
     for (var poolId : poolIdListNeedFetchData) {
-      CompletableFuture<Boolean> future = poolHistoryFetchingService.fetchData(poolId);
+      CompletableFuture<Boolean> future = poolHistoryFetchingService.fetchData(poolId)
+          .exceptionally(
+              ex -> {
+                log.error("Exception occurred in fetchData for poolId {}: {}", poolId,
+                    ex.getMessage());
+                return Boolean.FALSE;
+              }
+          );
       futures.add(future);
     }
 

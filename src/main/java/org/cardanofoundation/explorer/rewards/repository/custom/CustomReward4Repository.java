@@ -33,6 +33,11 @@ public class CustomReward4Repository {
       ps.setLong(2, reward.getAmount().longValue());
       ps.setLong(3, reward.getEarnedEpoch());
       ps.setLong(4, reward.getSpendableEpoch());
+      if (reward.getAddr() != null) {
+        ps.setLong(5, reward.getAddr().getId());
+      } else {
+        ps.setNull(5, Types.BIGINT);
+      }
       if (reward.getPool() != null) {
         ps.setLong(6, reward.getPool().getId());
       } else {

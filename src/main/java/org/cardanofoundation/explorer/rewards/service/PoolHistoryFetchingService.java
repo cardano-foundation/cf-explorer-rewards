@@ -8,7 +8,7 @@ import rest.koios.client.backend.api.base.exception.ApiException;
 
 public interface PoolHistoryFetchingService {
 
-  CompletableFuture<Boolean> fetchData(String poolIds);
+  CompletableFuture<Boolean> fetchData(String poolIds) throws ApiException;
 
   List<String> getPoolIdListNeedFetchData(List<String> poolIds);
 }

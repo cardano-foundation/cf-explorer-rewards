@@ -13,7 +13,7 @@ import org.cardanofoundation.explorer.rewards.entity.RewardCheckpoint2;
 
 @Repository
 @RequiredArgsConstructor
-public class CustomReward4CheckpointRepository {
+public class CustomRewardCheckpoint2Repository {
 
   private final JdbcTemplate jdbcTemplate;
 

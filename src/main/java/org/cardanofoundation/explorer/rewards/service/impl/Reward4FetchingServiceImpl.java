@@ -25,10 +25,9 @@ import org.cardanofoundation.explorer.rewards.entity.Reward4;
 import org.cardanofoundation.explorer.rewards.entity.RewardCheckpoint2;
 import org.cardanofoundation.explorer.rewards.repository.EpochRepository;
 import org.cardanofoundation.explorer.rewards.repository.PoolHashRepository;
-import org.cardanofoundation.explorer.rewards.repository.Reward4Repository;
 import org.cardanofoundation.explorer.rewards.repository.RewardCheckpoint2Repository;
 import org.cardanofoundation.explorer.rewards.repository.StakeAddressRepository;
-import org.cardanofoundation.explorer.rewards.repository.custom.CustomReward4CheckpointRepository;
+import org.cardanofoundation.explorer.rewards.repository.custom.CustomRewardCheckpoint2Repository;
 import org.cardanofoundation.explorer.rewards.repository.custom.CustomReward4Repository;
 import org.cardanofoundation.explorer.rewards.service.Reward4FetchingService;
 import org.jetbrains.annotations.NotNull;
@@ -48,84 +47,80 @@ public class Reward4FetchingServiceImpl implements Reward4FetchingService {
   final RewardCheckpoint2Repository rewardCheckpoint2Repository;
   final EpochRepository epochRepository;
   final CustomReward4Repository customReward4Repository;
-  final CustomReward4CheckpointRepository customReward4CheckpointRepository;
+  final CustomRewardCheckpoint2Repository customRewardCheckpoint2Repository;
 
   @Override
   @Async
   @Transactional(rollbackFor = {Exception.class})
-  public CompletableFuture<Boolean> fetchData(List<String> stakeAddressList) {
+  public CompletableFuture<Boolean> fetchData(List<String> stakeAddressList)
+      throws ApiException {
     var curTime = System.currentTimeMillis();
-    try {
+    Integer currentEpoch = epochRepository.findMaxEpoch();
+    // we only fetch data with addresses that are not in the checkpoint table
+    // or in the checkpoint table but have an epoch checkpoint value < (current epoch - 1)
+    List<String> stakeAddressListNeedFetchData = getStakeAddressListNeedFetchData(stakeAddressList,
+        currentEpoch);
 
-      Integer currentEpoch = epochRepository.findMaxEpoch();
-      // we only fetch data with addresses that are not in the checkpoint table
-      // or in the checkpoint table but have an epoch checkpoint value < (current epoch - 1)
-      List<String> stakeAddressListNeedFetchData = getStakeAddressListNeedFetchData(stakeAddressList, currentEpoch);
+    if (stakeAddressListNeedFetchData.isEmpty()) {
+      log.info(
+          "Reward: all stake addresses were in checkpoint and had epoch checkpoint = current epoch - 1");
+      return CompletableFuture.completedFuture(true);
+    }
 
-      if (stakeAddressListNeedFetchData.isEmpty()) {
-        log.info("Reward: all stake addresses were in checkpoint and had epoch checkpoint = current epoch - 1");
-        return CompletableFuture.completedFuture(true);
+    List<AccountRewards> accountRewardsList = getAccountRewards(stakeAddressListNeedFetchData);
+
+    int rewardSize = accountRewardsList
+        .parallelStream()
+        .mapToInt(accountHistory -> accountHistory.getRewards().size())
+        .sum();
+
+    log.info("fetch {} reward by koios api: {} ms, with stake_address input size {}",
+        rewardSize, System.currentTimeMillis() - curTime, stakeAddressListNeedFetchData.size());
+
+    Map<String, RewardCheckpoint2> rewardCheckpointMap = getRewardCheckpointMap(
+        stakeAddressListNeedFetchData);
+
+    Map<String, StakeAddress> stakeAddressMap = getStakeAddressMap(stakeAddressListNeedFetchData);
+
+    Map<String, PoolHash> poolHashMap = getPoolHashMap(accountRewardsList);
+
+    List<Reward4> result = new ArrayList<>();
+
+    for (var accountRewards : accountRewardsList) {
+      var rewardCheckpoint = rewardCheckpointMap.get(accountRewards.getStakeAddress());
+      if (rewardCheckpoint == null) {
+        continue;
       }
 
-      List<AccountRewards> accountRewardsList = getAccountRewards(stakeAddressListNeedFetchData);
-
-      int rewardSize = accountRewardsList
-          .parallelStream()
-          .mapToInt(accountHistory -> accountHistory.getRewards().size())
-          .sum();
-
-      log.info("fetch {} reward by koios api: {} ms, with stake_address input size {}",
-          rewardSize, System.currentTimeMillis() - curTime, stakeAddressListNeedFetchData.size());
-
-      Map<String, RewardCheckpoint2> rewardCheckpointMap = getRewardCheckpointMap(stakeAddressListNeedFetchData,
-          accountRewardsList);
-
-      Map<String, StakeAddress> stakeAddressMap = getStakeAddressMap(stakeAddressListNeedFetchData);
-
-      Map<String, PoolHash> poolHashMap = getPoolHashMap(accountRewardsList);
-
-      List<Reward4> result = new ArrayList<>();
-
-      for (var accountRewards : accountRewardsList) {
-        var rewardCheckpoint = rewardCheckpointMap.get(accountRewards.getStakeAddress());
-        if (rewardCheckpoint == null) {
+      for (var accountReward : accountRewards.getRewards()) {
+        // if earned epoch <= epoch checkpoint, data was saved
+        if (accountReward.getEarnedEpoch() <= rewardCheckpoint.getEpochCheckpoint()) {
           continue;
         }
 
-        for (var accountReward : accountRewards.getRewards()) {
-          // if earned epoch <= epoch checkpoint, data was saved
-          if (accountReward.getEarnedEpoch() <= rewardCheckpoint.getEpochCheckpoint()) {
-            continue;
-          }
+        Reward4 reward4 = Reward4.builder()
+            .pool(poolHashMap.get(accountReward.getPoolId()))
+            .addr(stakeAddressMap.get(accountRewards.getStakeAddress()))
+            .amount(new BigInteger(accountReward.getAmount()))
+            .earnedEpoch(accountReward.getEarnedEpoch())
+            .spendableEpoch(accountReward.getSpendableEpoch())
+            .type(RewardType.fromValue(accountReward.getType()))
+            .build();
 
-          Reward4 reward4 = Reward4.builder()
-              .pool(poolHashMap.get(accountReward.getPoolId()))
-              .addr(stakeAddressMap.get(accountRewards.getStakeAddress()))
-              .amount(new BigInteger(accountReward.getAmount()))
-              .earnedEpoch(accountReward.getEarnedEpoch())
-              .spendableEpoch(accountReward.getSpendableEpoch())
-              .type(RewardType.fromValue(accountReward.getType()))
-              .build();
-
-          result.add(reward4);
-        }
+        result.add(reward4);
       }
-
-      rewardCheckpointMap
-          .values()
-          .forEach(rewardCheckpoint -> rewardCheckpoint.setEpochCheckpoint(currentEpoch - 1));
-
-//      reward4Repository.saveAll(result);
-//      rewardCheckpoint2Repository.saveAll(rewardCheckpointMap.values());
-      customReward4Repository.saveRewards(result);
-      customReward4CheckpointRepository.saveCheckpoints(rewardCheckpointMap.values().stream().toList());
-
-      log.info("Save {} reward record from koios api: {} ms, with stake_address input size {}",
-          result.size(), System.currentTimeMillis() - curTime, stakeAddressListNeedFetchData.size());
-    } catch (ApiException e) {
-      log.error("Exception when fetching reward data", e);
-      return CompletableFuture.completedFuture(Boolean.FALSE);
     }
+
+    rewardCheckpointMap
+        .values()
+        .forEach(rewardCheckpoint -> rewardCheckpoint.setEpochCheckpoint(currentEpoch - 1));
+
+    customReward4Repository.saveRewards(result);
+    customRewardCheckpoint2Repository.saveCheckpoints(
+        rewardCheckpointMap.values().stream().toList());
+
+    log.info("Save {} reward record from koios api: {} ms, with stake_address input size {}",
+        result.size(), System.currentTimeMillis() - curTime, stakeAddressListNeedFetchData.size());
 
     return CompletableFuture.completedFuture(Boolean.TRUE);
   }
@@ -157,20 +152,19 @@ public class Reward4FetchingServiceImpl implements Reward4FetchingService {
         .getValue();
   }
 
-  private Map<String, RewardCheckpoint2> getRewardCheckpointMap(List<String> stakeAddressList,
-                                                               List<AccountRewards> accountRewardsList) {
+  private Map<String, RewardCheckpoint2> getRewardCheckpointMap(List<String> stakeAddressList) {
 
     Map<String, RewardCheckpoint2> rewardCheckpointMap = rewardCheckpoint2Repository
         .findByStakeAddressIn(stakeAddressList)
         .stream()
         .collect(Collectors.toMap(RewardCheckpoint2::getStakeAddress, Function.identity()));
 
-    List<RewardCheckpoint2> rewardCheckpoints = accountRewardsList
+    List<RewardCheckpoint2> rewardCheckpoints = stakeAddressList
         .stream()
         .filter(
-            accountRewards -> !rewardCheckpointMap.containsKey(accountRewards.getStakeAddress()))
-        .map(accountRewards -> RewardCheckpoint2.builder()
-            .stakeAddress(accountRewards.getStakeAddress())
+            stakeAddress -> !rewardCheckpointMap.containsKey(stakeAddress))
+        .map(stakeAddress -> RewardCheckpoint2.builder()
+            .stakeAddress(stakeAddress)
             .epochCheckpoint(0)
             .build())
         .collect(Collectors.toList());
@@ -181,7 +175,8 @@ public class Reward4FetchingServiceImpl implements Reward4FetchingService {
     return rewardCheckpointMap;
   }
 
-  private List<String> getStakeAddressListNeedFetchData(List<String> stakeAddressList, int currentEpoch) {
+  private List<String> getStakeAddressListNeedFetchData(List<String> stakeAddressList,
+                                                        int currentEpoch) {
     Map<String, RewardCheckpoint2> rewardCheckpointMap = rewardCheckpoint2Repository
         .findByStakeAddressIn(stakeAddressList)
         .stream()

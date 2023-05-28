@@ -44,52 +44,43 @@ public class PoolHistoryFetchingServiceImpl implements PoolHistoryFetchingServic
   @Async
   @Transactional(rollbackFor = {Exception.class})
   public CompletableFuture<Boolean> fetchData(
-      String poolId) {
+      String poolId) throws ApiException {
     var currentEpoch = epochRepository.findMaxEpoch();
 
-    try {
-      var dataFromKoios = getPoolHistoryList(poolId);
-      var poolHistoryCheckpoint = poolHistoryCheckpointRepository.findByView(poolId);
-      List<PoolHistory> poolHistoryList = new ArrayList<>();
-      for (var poolHistory : dataFromKoios) {
-        var entity = PoolHistory.builder()
-            .epochNo(poolHistory.getEpochNo())
-            .activeStake(poolHistory.getActiveStake())
-            .activeStakePct(poolHistory.getActiveStakePct())
-            .blockCnt(poolHistory.getBlockCnt())
-            .poolFees(poolHistory.getPoolFees())
-            .delegatorCnt(poolHistory.getDelegatorCnt())
-            .delegRewards(poolHistory.getDelegRewards())
-            .epochRos(poolHistory.getEpochRos())
-            .fixedCost(poolHistory.getFixedCost())
-            .margin(poolHistory.getMargin())
-            .saturationPct(poolHistory.getSaturationPct())
-            .poolId(poolId)
-            .build();
-        poolHistoryList.add(entity);
-      }
+    var dataFromKoios = getPoolHistoryList(poolId);
+    var poolHistoryCheckpoint = poolHistoryCheckpointRepository.findByView(poolId);
+    List<PoolHistory> poolHistoryList = new ArrayList<>();
+    for (var poolHistory : dataFromKoios) {
+      var entity = PoolHistory.builder()
+          .epochNo(poolHistory.getEpochNo())
+          .activeStake(poolHistory.getActiveStake())
+          .activeStakePct(poolHistory.getActiveStakePct())
+          .blockCnt(poolHistory.getBlockCnt())
+          .poolFees(poolHistory.getPoolFees())
+          .delegatorCnt(poolHistory.getDelegatorCnt())
+          .delegRewards(poolHistory.getDelegRewards())
+          .epochRos(poolHistory.getEpochRos())
+          .fixedCost(poolHistory.getFixedCost())
+          .margin(poolHistory.getMargin())
+          .saturationPct(poolHistory.getSaturationPct())
+          .poolId(poolId)
+          .build();
+      poolHistoryList.add(entity);
+    }
 
-      if (poolHistoryCheckpoint.isPresent()) {
-        customPoolHistoryRepository.savePoolHistoryList(poolHistoryList.stream().filter(
-            poolHistory -> poolHistory.getEpochNo() > poolHistoryCheckpoint.get()
-                .getEpochCheckpoint()).collect(Collectors.toList()));
+    if (poolHistoryCheckpoint.isPresent()) {
+      customPoolHistoryRepository.savePoolHistoryList(poolHistoryList.stream().filter(
+          poolHistory -> poolHistory.getEpochNo() > poolHistoryCheckpoint.get()
+              .getEpochCheckpoint()).collect(Collectors.toList()));
 
-        var checkpoint = poolHistoryCheckpoint.get();
-        checkpoint.setEpochCheckpoint(currentEpoch - 1);
-        customPoolHistoryCheckpointRepository.saveCheckpoints(List.of(checkpoint));
-      } else {
-        customPoolHistoryRepository.savePoolHistoryList(poolHistoryList);
-
-//        poolHistoryCheckpointRepository.save(
-//            PoolHistoryCheckpoint.builder().view(poolId).epochCheckpoint(currentEpoch - 1)
-//                .build());
-        customPoolHistoryCheckpointRepository.saveCheckpoints(
-            List.of(PoolHistoryCheckpoint.builder().view(poolId).epochCheckpoint(currentEpoch - 1)
-                .build()));
-      }
-    } catch (Exception e) {
-      log.error("Exception {}", e.getMessage());
-      return CompletableFuture.completedFuture(Boolean.FALSE);
+      var checkpoint = poolHistoryCheckpoint.get();
+      checkpoint.setEpochCheckpoint(currentEpoch - 1);
+      customPoolHistoryCheckpointRepository.saveCheckpoints(List.of(checkpoint));
+    } else {
+      customPoolHistoryRepository.savePoolHistoryList(poolHistoryList);
+      customPoolHistoryCheckpointRepository.saveCheckpoints(
+          List.of(PoolHistoryCheckpoint.builder().view(poolId).epochCheckpoint(currentEpoch - 1)
+              .build()));
     }
 
     return CompletableFuture.completedFuture(Boolean.TRUE);
