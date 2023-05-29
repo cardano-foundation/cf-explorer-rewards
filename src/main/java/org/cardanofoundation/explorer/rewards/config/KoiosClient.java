@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 import org.cardanofoundation.explorer.rewards.constant.NetworkConstants;
 import rest.koios.client.backend.api.account.AccountService;
 import rest.koios.client.backend.api.network.NetworkService;
+import rest.koios.client.backend.api.pool.PoolService;
 import rest.koios.client.backend.factory.BackendFactory;
 import rest.koios.client.backend.factory.BackendService;
 
@@ -25,6 +26,10 @@ public class KoiosClient {
 
   public NetworkService networkService() {
     return this.backendService.getNetworkService();
+  }
+
+  public PoolService poolService() {
+    return this.backendService.getPoolService();
   }
 
   @PostConstruct
