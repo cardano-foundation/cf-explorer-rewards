@@ -17,6 +17,7 @@ import rest.koios.client.backend.api.base.exception.ApiException;
 @RequestMapping("/api/v1/pool-history")
 @RequiredArgsConstructor
 public class PoolHistoryController {
+
   private final PoolHistoryConcurrentFetching poolHistoryConcurrentFetching;
 
   @PostMapping("/fetch")

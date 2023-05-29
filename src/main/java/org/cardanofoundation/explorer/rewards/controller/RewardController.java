@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import org.cardanofoundation.explorer.rewards.concurrent.RewardConcurrentFetching;
+import rest.koios.client.backend.api.base.exception.ApiException;
 
 @RestController
 @RequestMapping("/api/v1/rewards")
@@ -20,7 +21,8 @@ public class RewardController {
   private final RewardConcurrentFetching rewardConcurrentFetching;
 
   @PostMapping("/fetch")
-  public Boolean fetchRewards(@RequestBody Set<String> stakeAddressSet) {
+  public Boolean fetchRewards(@RequestBody Set<String> stakeAddressSet)
+      throws ApiException {
     return rewardConcurrentFetching.fetchDataConcurrently(new ArrayList<>(stakeAddressSet));
   }
 }

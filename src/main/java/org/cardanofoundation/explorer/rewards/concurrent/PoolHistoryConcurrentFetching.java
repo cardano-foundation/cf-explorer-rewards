@@ -23,9 +23,11 @@ public class PoolHistoryConcurrentFetching {
   final PoolHistoryFetchingService poolHistoryFetchingService;
 
   public Boolean fetchDataConcurrently(List<String> poolIds) throws ApiException {
-    //todo: (important) validate poolIds
+    //TODO: validate poolIds
     var curTime = System.currentTimeMillis();
 
+    // we only fetch data with addresses that are not in the checkpoint table
+    // or in the checkpoint table but have an epoch checkpoint value < (current epoch - 1)
     List<String> poolIdListNeedFetchData = poolHistoryFetchingService.getPoolIdListNeedFetchData(
         poolIds);
 
@@ -34,6 +36,8 @@ public class PoolHistoryConcurrentFetching {
           "Reward: all poolId were in checkpoint and had epoch checkpoint = current epoch - 1");
       return Boolean.TRUE;
     }
+
+    // fetch and store data concurrently
     List<CompletableFuture<Boolean>> futures = new ArrayList<>();
 
     for (var poolId : poolIdListNeedFetchData) {

@@ -10,7 +10,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
-import org.cardanofoundation.explorer.rewards.entity.PoolHistory;
+import org.cardanofoundation.explorer.consumercommon.entity.PoolHistory;
 
 import static org.cardanofoundation.explorer.rewards.util.CommonUtils.setNullableValue;
 
