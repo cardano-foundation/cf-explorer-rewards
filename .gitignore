@@ -44,5 +44,4 @@ build/
 .env
 
 ### Maven ###
-.m2/
-!.m2/settings.default.xml
+.m2/settings.xml
