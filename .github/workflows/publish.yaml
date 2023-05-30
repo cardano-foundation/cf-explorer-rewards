@@ -55,7 +55,6 @@ jobs:
       - name: Build and Push docker image
         uses: docker/build-push-action@v4
         with:
-          file: ./Dockerfile.local
           context: .
           push: true
           tags: |
