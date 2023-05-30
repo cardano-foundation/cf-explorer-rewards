@@ -11,21 +11,22 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
-import org.cardanofoundation.explorer.rewards.entity.Reward4;
+import org.cardanofoundation.explorer.rewards.entity.Reward3;
 
 @Repository
 @RequiredArgsConstructor
-public class CustomReward4Repository {
+public class CustomRewardRepository {
+
   private final JdbcTemplate jdbcTemplate;
 
   @Value("${spring.jpa.properties.hibernate.jdbc.batch_size}")
   private int batchSize;
 
   @Transactional
-  public void saveRewards(List<Reward4> rewards) {
-    String sql = "INSERT INTO reward4 (id, type, amount, earned_epoch, spendable_epoch, addr_id, "
+  public void saveRewards(List<Reward3> rewards) {
+    String sql = "INSERT INTO reward3 (id, type, amount, earned_epoch, spendable_epoch, addr_id, "
         + "pool_id)"
-        + " VALUES (nextval('reward4_id_seq'), ?, ?, ?, ?, ?, ?)"
+        + " VALUES (nextval('reward3_id_seq'), ?, ?, ?, ?, ?, ?)"
         + " ON CONFLICT (addr_id, type, earned_epoch, pool_id) DO NOTHING";
 
     jdbcTemplate.batchUpdate(sql, rewards, batchSize, (ps, reward) -> {

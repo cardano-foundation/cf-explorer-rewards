@@ -1,6 +1,5 @@
 package org.cardanofoundation.explorer.rewards.service.impl;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -16,12 +15,11 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import org.cardanofoundation.explorer.consumercommon.entity.PoolHistory;
+import org.cardanofoundation.explorer.consumercommon.entity.PoolHistoryCheckpoint;
 import org.cardanofoundation.explorer.rewards.config.KoiosClient;
-import org.cardanofoundation.explorer.rewards.entity.PoolHistory;
-import org.cardanofoundation.explorer.rewards.entity.PoolHistoryCheckpoint;
 import org.cardanofoundation.explorer.rewards.repository.EpochRepository;
 import org.cardanofoundation.explorer.rewards.repository.PoolHistoryCheckpointRepository;
-import org.cardanofoundation.explorer.rewards.repository.PoolHistoryRepository;
 import org.cardanofoundation.explorer.rewards.repository.custom.CustomPoolHistoryCheckpointRepository;
 import org.cardanofoundation.explorer.rewards.repository.custom.CustomPoolHistoryRepository;
 import org.cardanofoundation.explorer.rewards.service.PoolHistoryFetchingService;
@@ -36,7 +34,6 @@ public class PoolHistoryFetchingServiceImpl implements PoolHistoryFetchingServic
   final KoiosClient koiosClient;
   final EpochRepository epochRepository;
   final PoolHistoryCheckpointRepository poolHistoryCheckpointRepository;
-  final PoolHistoryRepository poolHistoryRepository;
   final CustomPoolHistoryRepository customPoolHistoryRepository;
   final CustomPoolHistoryCheckpointRepository customPoolHistoryCheckpointRepository;
 
@@ -49,24 +46,22 @@ public class PoolHistoryFetchingServiceImpl implements PoolHistoryFetchingServic
 
     var dataFromKoios = getPoolHistoryList(poolId);
     var poolHistoryCheckpoint = poolHistoryCheckpointRepository.findByView(poolId);
-    List<PoolHistory> poolHistoryList = new ArrayList<>();
-    for (var poolHistory : dataFromKoios) {
-      var entity = PoolHistory.builder()
-          .epochNo(poolHistory.getEpochNo())
-          .activeStake(poolHistory.getActiveStake())
-          .activeStakePct(poolHistory.getActiveStakePct())
-          .blockCnt(poolHistory.getBlockCnt())
-          .poolFees(poolHistory.getPoolFees())
-          .delegatorCnt(poolHistory.getDelegatorCnt())
-          .delegRewards(poolHistory.getDelegRewards())
-          .epochRos(poolHistory.getEpochRos())
-          .fixedCost(poolHistory.getFixedCost())
-          .margin(poolHistory.getMargin())
-          .saturationPct(poolHistory.getSaturationPct())
-          .poolId(poolId)
-          .build();
-      poolHistoryList.add(entity);
-    }
+
+    List<PoolHistory> poolHistoryList =
+        dataFromKoios.stream().map(poolHistory -> PoolHistory.builder()
+            .epochNo(poolHistory.getEpochNo())
+            .activeStake(poolHistory.getActiveStake())
+            .activeStakePct(poolHistory.getActiveStakePct())
+            .blockCnt(poolHistory.getBlockCnt())
+            .poolFees(poolHistory.getPoolFees())
+            .delegatorCnt(poolHistory.getDelegatorCnt())
+            .delegRewards(poolHistory.getDelegRewards())
+            .epochRos(poolHistory.getEpochRos())
+            .fixedCost(poolHistory.getFixedCost())
+            .margin(poolHistory.getMargin())
+            .saturationPct(poolHistory.getSaturationPct())
+            .poolId(poolId)
+            .build()).collect(Collectors.toList());
 
     if (poolHistoryCheckpoint.isPresent()) {
       customPoolHistoryRepository.savePoolHistoryList(poolHistoryList.stream().filter(
@@ -86,6 +81,13 @@ public class PoolHistoryFetchingServiceImpl implements PoolHistoryFetchingServic
     return CompletableFuture.completedFuture(Boolean.TRUE);
   }
 
+  /**
+   * fetch data using koios java client
+   *
+   * @param poolId
+   * @return
+   * @throws ApiException
+   */
   private List<rest.koios.client.backend.api.pool.model.PoolHistory> getPoolHistoryList(
       String poolId)
       throws ApiException {
@@ -94,30 +96,14 @@ public class PoolHistoryFetchingServiceImpl implements PoolHistoryFetchingServic
         .getValue();
   }
 
-  private Map<String, PoolHistoryCheckpoint> getPoolHistoryCheckpointMap(
-      List<String> poolIds) {
 
-    Map<String, PoolHistoryCheckpoint> poolHistoryCheckpointMap = poolHistoryCheckpointRepository
-        .findByViewIn(poolIds)
-        .stream()
-        .collect(Collectors.toMap(PoolHistoryCheckpoint::getView, Function.identity()));
-
-    List<PoolHistoryCheckpoint> poolHistoryCheckpoints = poolIds
-        .stream()
-        .filter(
-            poolId -> !poolHistoryCheckpointMap.containsKey(poolId))
-        .map(poolId -> PoolHistoryCheckpoint.builder()
-            .view(poolId)
-            .epochCheckpoint(0)
-            .build())
-        .collect(Collectors.toList());
-
-    poolHistoryCheckpointMap.putAll(poolHistoryCheckpoints.stream().collect(
-        Collectors.toMap(PoolHistoryCheckpoint::getView, Function.identity())));
-
-    return poolHistoryCheckpointMap;
-  }
-
+  /**
+   * get poolId list that are not in the checkpoint table or in the checkpoint table but have an
+   * epoch checkpoint value < (current epoch - 1)
+   *
+   * @param poolIds
+   * @return
+   */
   @Override
   public List<String> getPoolIdListNeedFetchData(List<String> poolIds) {
     Integer currentEpoch = epochRepository.findMaxEpoch();

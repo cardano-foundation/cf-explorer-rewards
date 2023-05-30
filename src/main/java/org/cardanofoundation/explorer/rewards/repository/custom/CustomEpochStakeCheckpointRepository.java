@@ -9,11 +9,11 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
-import org.cardanofoundation.explorer.rewards.entity.RewardCheckpoint2;
+import org.cardanofoundation.explorer.consumercommon.entity.EpochStakeCheckpoint;
 
 @Repository
 @RequiredArgsConstructor
-public class CustomRewardCheckpoint2Repository {
+public class CustomEpochStakeCheckpointRepository {
 
   private final JdbcTemplate jdbcTemplate;
 
@@ -21,15 +21,14 @@ public class CustomRewardCheckpoint2Repository {
   private int batchSize;
 
   @Transactional
-  public void saveCheckpoints(List<RewardCheckpoint2> rewardCheckpoints) {
-    String sql = "INSERT INTO reward_checkpoint_2 (id, view, epoch_checkpoint) "
-        + " VALUES (nextval('reward_checkpoint_2_id_seq'), ?, ?)"
+  public void saveCheckpoints(List<EpochStakeCheckpoint> epochStakeCheckpoints) {
+    String sql = "INSERT INTO epoch_stake_checkpoint (id, view, epoch_checkpoint) "
+        + " VALUES (nextval('epoch_stake_checkpoint_id_seq'), ?, ?)"
         + "    ON CONFLICT (view) DO NOTHING";
 
-    jdbcTemplate.batchUpdate(sql, rewardCheckpoints, batchSize, (ps, rewardCheckpoint) -> {
-      ps.setString(1, rewardCheckpoint.getStakeAddress());
-      ps.setLong(2, rewardCheckpoint.getEpochCheckpoint());
+    jdbcTemplate.batchUpdate(sql, epochStakeCheckpoints, batchSize, (ps, epochStakeCheckpoint) -> {
+      ps.setString(1, epochStakeCheckpoint.getStakeAddress());
+      ps.setLong(2, epochStakeCheckpoint.getEpochCheckpoint());
     });
   }
-
 }

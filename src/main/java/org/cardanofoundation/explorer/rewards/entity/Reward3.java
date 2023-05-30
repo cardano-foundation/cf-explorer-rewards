@@ -30,8 +30,8 @@ import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
 @Entity
-@Table(name = "reward4", uniqueConstraints = {
-    @UniqueConstraint(name = "unique_reward",
+@Table(name = "reward3", uniqueConstraints = {
+    @UniqueConstraint(name = "unique_reward3",
         columnNames = {"addr_id", "type", "earned_epoch", "pool_id"})
 })
 @Getter
@@ -39,7 +39,7 @@ import org.hibernate.annotations.OnDeleteAction;
 @NoArgsConstructor
 @AllArgsConstructor
 @SuperBuilder(toBuilder = true)
-public class Reward4 extends BaseEntity {
+public class Reward3 extends BaseEntity {
   @ManyToOne(fetch = FetchType.LAZY, optional = false)
   @OnDelete(action = OnDeleteAction.CASCADE)
   @JoinColumn(name = "addr_id", nullable = false,
@@ -67,7 +67,7 @@ public class Reward4 extends BaseEntity {
   @ManyToOne(fetch = FetchType.LAZY)
   @OnDelete(action = OnDeleteAction.CASCADE)
   @JoinColumn(name = "pool_id",
-      foreignKey = @ForeignKey(name = "reward_pool_id_fkey"))
+      foreignKey = @ForeignKey(name = "reward3_pool_id_fkey"))
   @EqualsAndHashCode.Exclude
   private PoolHash pool;
 
@@ -82,7 +82,7 @@ public class Reward4 extends BaseEntity {
     if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) {
       return false;
     }
-    Reward4 reward = (Reward4) o;
+    Reward3 reward = (Reward3) o;
     return id != null && Objects.equals(id, reward.id);
   }
 

@@ -11,15 +11,17 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import org.cardanofoundation.explorer.rewards.concurrent.EpochStakeConcurrentFetching;
+import rest.koios.client.backend.api.base.exception.ApiException;
 
 @RestController
 @RequestMapping("/api/v1/epoch-stake")
 @RequiredArgsConstructor
 public class EpochStakeController {
+
   private final EpochStakeConcurrentFetching epochStakeConcurrentFetching;
 
   @PostMapping("/fetch")
-  public Boolean fetchEpochStakes(@RequestBody Set<String> stakeAddressSet) {
+  public Boolean fetchEpochStakes(@RequestBody Set<String> stakeAddressSet) throws ApiException {
     return epochStakeConcurrentFetching.fetchDataConcurrently(new ArrayList<>(stakeAddressSet));
   }
 }

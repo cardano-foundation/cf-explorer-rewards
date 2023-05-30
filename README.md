@@ -15,9 +15,3 @@
 - LIST_SIZE_EACH_THREAD: batch size to fetch data each thread
 - FLYWAY_ENABLE: whether to enable flyway
 - FLYWAY_VALIDATE: whether to automatically call validate when performing a migration
-- REWARD_PARALLEL_SAVING_ENABLED: whether to save rewards data concurrently
-- REWARD_SUB_LIST_SIZE: reward data subset size  in case of concurrent saving
-- REWARD_PARALLEL_SAVING_THREAD_NUM: number of thread to save rewards data in case of concurrent saving
-- EPOCH_STAKE_PARALLEL_SAVING_ENABLED: whether to save epoch stake data concurrently
-- EPOCH_STAKE_SUB_LIST_SIZE: epoch stake subset size  in case of concurrent saving
-- EPOCH_STAKE_PARALLEL_SAVING_THREAD_NUM: number of thread to save epoch stake data in case of concurrent saving
