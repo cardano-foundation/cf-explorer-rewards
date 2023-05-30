@@ -23,7 +23,7 @@ public class CustomPoolHistoryCheckpointRepository {
   @Transactional
   public void saveCheckpoints(List<PoolHistoryCheckpoint> poolHistoryCheckpoints) {
     String sql = "INSERT INTO pool_history_checkpoint (id, view, epoch_checkpoint) "
-        + " VALUES (nextval('pool_history_id_seq'), ?, ?)"
+        + " VALUES (nextval('pool_history_checkpoint_id_seq'), ?, ?)"
         + "    ON CONFLICT (view) DO NOTHING";
 
     jdbcTemplate.batchUpdate(sql, poolHistoryCheckpoints, batchSize,

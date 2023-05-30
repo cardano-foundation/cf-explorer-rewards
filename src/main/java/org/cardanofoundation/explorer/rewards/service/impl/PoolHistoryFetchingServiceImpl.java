@@ -114,9 +114,9 @@ public class PoolHistoryFetchingServiceImpl implements PoolHistoryFetchingServic
         .collect(Collectors.toMap(PoolHistoryCheckpoint::getView, Function.identity()));
 
     return poolIds.stream()
-        .filter(stakeAddress -> (
-            (!poolHistoryCheckpointMap.containsKey(stakeAddress))
-                || poolHistoryCheckpointMap.get(stakeAddress).getEpochCheckpoint()
+        .filter(poolId -> (
+            (!poolHistoryCheckpointMap.containsKey(poolId))
+                || poolHistoryCheckpointMap.get(poolId).getEpochCheckpoint()
                 < currentEpoch - 1
         ))
         .collect(Collectors.toList());
