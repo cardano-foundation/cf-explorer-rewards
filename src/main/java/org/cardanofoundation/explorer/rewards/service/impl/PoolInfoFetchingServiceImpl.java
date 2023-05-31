@@ -15,12 +15,11 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import org.cardanofoundation.explorer.consumercommon.entity.PoolInfo;
+import org.cardanofoundation.explorer.consumercommon.entity.PoolInfoCheckpoint;
 import org.cardanofoundation.explorer.rewards.config.KoiosClient;
-import org.cardanofoundation.explorer.rewards.entity.PoolInfo;
-import org.cardanofoundation.explorer.rewards.entity.PoolInfoCheckpoint;
 import org.cardanofoundation.explorer.rewards.repository.EpochRepository;
 import org.cardanofoundation.explorer.rewards.repository.PoolInfoCheckpointRepository;
-import org.cardanofoundation.explorer.rewards.repository.custom.CustomPoolHistoryCheckpointRepository;
 import org.cardanofoundation.explorer.rewards.repository.custom.CustomPoolInfoCheckpointRepository;
 import org.cardanofoundation.explorer.rewards.repository.custom.CustomPoolInfoRepository;
 import org.cardanofoundation.explorer.rewards.service.PoolInfoFetchingService;

@@ -11,7 +11,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
-import org.cardanofoundation.explorer.rewards.entity.Reward3;
+import org.cardanofoundation.explorer.consumercommon.entity.Reward;
 
 @Repository
 @RequiredArgsConstructor
@@ -23,7 +23,7 @@ public class CustomRewardRepository {
   private int batchSize;
 
   @Transactional
-  public void saveRewards(List<Reward3> rewards) {
+  public void saveRewards(List<Reward> rewards) {
     String sql = "INSERT INTO reward3 (id, type, amount, earned_epoch, spendable_epoch, addr_id, "
         + "pool_id)"
         + " VALUES (nextval('reward3_id_seq'), ?, ?, ?, ?, ?, ?)"

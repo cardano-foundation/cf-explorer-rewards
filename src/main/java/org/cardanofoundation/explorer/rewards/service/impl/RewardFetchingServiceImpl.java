@@ -18,11 +18,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import org.cardanofoundation.explorer.consumercommon.entity.PoolHash;
+import org.cardanofoundation.explorer.consumercommon.entity.Reward;
 import org.cardanofoundation.explorer.consumercommon.entity.RewardCheckpoint;
 import org.cardanofoundation.explorer.consumercommon.entity.StakeAddress;
 import org.cardanofoundation.explorer.consumercommon.enumeration.RewardType;
 import org.cardanofoundation.explorer.rewards.config.KoiosClient;
-import org.cardanofoundation.explorer.rewards.entity.Reward3;
 import org.cardanofoundation.explorer.rewards.repository.EpochRepository;
 import org.cardanofoundation.explorer.rewards.repository.PoolHashRepository;
 import org.cardanofoundation.explorer.rewards.repository.RewardCheckpointRepository;
@@ -74,7 +74,7 @@ public class RewardFetchingServiceImpl implements RewardFetchingService {
 
     Map<String, PoolHash> poolHashMap = getPoolHashMap(accountRewardsList);
 
-    List<Reward3> result = new ArrayList<>();
+    List<Reward> result = new ArrayList<>();
 
     for (var accountRewards : accountRewardsList) {
       var rewardCheckpoint = rewardCheckpointMap.get(accountRewards.getStakeAddress());
@@ -88,7 +88,7 @@ public class RewardFetchingServiceImpl implements RewardFetchingService {
           continue;
         }
 
-        Reward3 reward3 = Reward3.builder()
+        Reward reward = Reward.builder()
             .pool(poolHashMap.get(accountReward.getPoolId()))
             .addr(stakeAddressMap.get(accountRewards.getStakeAddress()))
             .amount(new BigInteger(accountReward.getAmount()))
@@ -97,7 +97,7 @@ public class RewardFetchingServiceImpl implements RewardFetchingService {
             .type(RewardType.fromValue(accountReward.getType()))
             .build();
 
-        result.add(reward3);
+        result.add(reward);
       }
     }
 
