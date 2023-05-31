@@ -65,6 +65,8 @@ spring:
 application:
   network: ${NETWORK:mainnet}
   reward:
-    list-size-each-thread: ${LIST_SIZE_EACH_THREAD:5}
+    list-size-each-thread: ${REWARD_LIST_SIZE_EACH_THREAD:5}
   epoch-stake:
-    list-size-each-thread: ${LIST_SIZE_EACH_THREAD:5}
+    list-size-each-thread: ${EPOCH_STAKE_LIST_SIZE_EACH_THREAD:5}
+  pool-info:
+    list-size-each-thread: ${POOL_INFO_LIST_SIZE_EACH_THREAD:500}

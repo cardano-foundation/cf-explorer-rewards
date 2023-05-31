@@ -20,9 +20,10 @@ import rest.koios.client.backend.api.base.exception.ApiException;
 @RequiredArgsConstructor
 @Slf4j
 public class PoolInfoConcurrentFetching {
+
   final PoolInfoFetchingService poolInfoFetchingService;
 
-  @Value("${application.epoch-stake.list-size-each-thread}")
+  @Value("${application.pool-info.list-size-each-thread}")
   int subListSize;
 
   public Boolean fetchDataConcurrently(List<String> poolIds) throws ApiException {
@@ -30,7 +31,8 @@ public class PoolInfoConcurrentFetching {
     var curTime = System.currentTimeMillis();
     // we only fetch data with addresses that are not in the checkpoint table
     // or in the checkpoint table but have an epoch checkpoint value < current epoch
-    List<String> poolIdListNeedFetchData = poolInfoFetchingService.getPoolIdListNeedFetchData(poolIds);
+    List<String> poolIdListNeedFetchData = poolInfoFetchingService.getPoolIdListNeedFetchData(
+        poolIds);
 
     if (poolIdListNeedFetchData.isEmpty()) {
       log.info(

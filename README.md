@@ -12,6 +12,8 @@
 - SPRING_PROFILES_ACTIVE: active profiles
 - POOL_CORE_SIZE: the ThreadPoolExecutor's core pool size
 - POOL_MAX_SIZE: the ThreadPoolExecutor's maximum pool size
-- LIST_SIZE_EACH_THREAD: batch size to fetch data each thread
+- REWARD_LIST_SIZE_EACH_THREAD: batch size to fetch reward data each thread
+- EPOCH_STAKE_LIST_SIZE_EACH_THREAD: batch size to fetch epoch stake data each thread
+- POOL_INFO_LIST_SIZE_EACH_THREAD: batch size to fetch pool info data each thread
 - FLYWAY_ENABLE: whether to enable flyway
 - FLYWAY_VALIDATE: whether to automatically call validate when performing a migration
