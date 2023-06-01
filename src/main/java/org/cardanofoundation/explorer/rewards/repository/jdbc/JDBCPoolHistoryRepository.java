@@ -1,4 +1,4 @@
-package org.cardanofoundation.explorer.rewards.repository.custom;
+package org.cardanofoundation.explorer.rewards.repository.jdbc;
 
 import java.sql.Types;
 import java.util.List;
@@ -6,6 +6,7 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Profile;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,7 +17,8 @@ import static org.cardanofoundation.explorer.rewards.util.CommonUtils.setNullabl
 
 @Repository
 @RequiredArgsConstructor
-public class CustomPoolHistoryRepository {
+@Profile("koios")
+public class JDBCPoolHistoryRepository {
 
   private final JdbcTemplate jdbcTemplate;
 
@@ -24,7 +26,7 @@ public class CustomPoolHistoryRepository {
   private int batchSize;
 
   @Transactional
-  public void savePoolHistoryList(List<PoolHistory> poolHistoryList) {
+  public void saveAll(List<PoolHistory> poolHistoryList) {
     String sql =
         "INSERT INTO pool_history (id, pool_id, epoch_no, active_stake, active_stake_pct, saturation_pct, "
             + "block_cnt, delegator_cnt, margin, fixed_cost, pool_fees, deleg_rewards, epoch_ros)"

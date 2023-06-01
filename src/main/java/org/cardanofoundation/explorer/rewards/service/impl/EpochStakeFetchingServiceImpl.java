@@ -14,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 
+import org.springframework.context.annotation.Profile;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,10 +28,9 @@ import org.cardanofoundation.explorer.rewards.repository.EpochRepository;
 import org.cardanofoundation.explorer.rewards.repository.EpochStakeCheckpointRepository;
 import org.cardanofoundation.explorer.rewards.repository.PoolHashRepository;
 import org.cardanofoundation.explorer.rewards.repository.StakeAddressRepository;
-import org.cardanofoundation.explorer.rewards.repository.custom.CustomEpochStakeCheckpointRepository;
-import org.cardanofoundation.explorer.rewards.repository.custom.CustomEpochStakeRepository;
+import org.cardanofoundation.explorer.rewards.repository.jdbc.JDBCEpochStakeCheckpointRepository;
+import org.cardanofoundation.explorer.rewards.repository.jdbc.JDBCEpochStakeRepository;
 import org.cardanofoundation.explorer.rewards.service.EpochStakeFetchingService;
-import org.jetbrains.annotations.NotNull;
 import rest.koios.client.backend.api.account.model.AccountHistory;
 import rest.koios.client.backend.api.account.model.AccountHistoryInner;
 import rest.koios.client.backend.api.base.exception.ApiException;
@@ -39,6 +39,7 @@ import rest.koios.client.backend.api.base.exception.ApiException;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @RequiredArgsConstructor
 @Slf4j
+@Profile("koios")
 public class EpochStakeFetchingServiceImpl implements EpochStakeFetchingService {
 
   final StakeAddressRepository stakeAddressRepository;
@@ -46,8 +47,8 @@ public class EpochStakeFetchingServiceImpl implements EpochStakeFetchingService 
   final PoolHashRepository poolHashRepository;
   final EpochStakeCheckpointRepository epochStakeCheckpointRepository;
   final EpochRepository epochRepository;
-  final CustomEpochStakeRepository customEpochStakeRepository;
-  final CustomEpochStakeCheckpointRepository customEpochStakeCheckpointRepository;
+  final JDBCEpochStakeRepository jdbcEpochStakeRepository;
+  final JDBCEpochStakeCheckpointRepository jdbcEpochStakeCheckpointRepository;
 
   @Override
   @Transactional(rollbackFor = {Exception.class})
@@ -97,8 +98,8 @@ public class EpochStakeFetchingServiceImpl implements EpochStakeFetchingService 
     epochStakeCheckpointMap
         .values()
         .forEach(epochCheckpoint -> epochCheckpoint.setEpochCheckpoint(currentEpoch - 1));
-    customEpochStakeRepository.saveEpochStakes(saveData);
-    customEpochStakeCheckpointRepository.saveCheckpoints(
+    jdbcEpochStakeRepository.saveAll(saveData);
+    jdbcEpochStakeCheckpointRepository.saveAll(
         epochStakeCheckpointMap.values().stream().toList());
 
     return CompletableFuture.completedFuture(Boolean.TRUE);
@@ -131,7 +132,6 @@ public class EpochStakeFetchingServiceImpl implements EpochStakeFetchingService 
     return epochStakeCheckpointMap;
   }
 
-  @NotNull
   private Map<String, StakeAddress> getStakeAddressMap(List<String> stakeAddressList) {
     return stakeAddressRepository
         .findByViewIn(stakeAddressList)
@@ -139,7 +139,6 @@ public class EpochStakeFetchingServiceImpl implements EpochStakeFetchingService 
         .collect(Collectors.toMap(StakeAddress::getView, Function.identity()));
   }
 
-  @NotNull
   private Map<String, PoolHash> getPoolHashMap(List<AccountHistory> accountHistoryList) {
     List<String> poolIds = accountHistoryList.stream()
         .flatMap(accountHistory -> accountHistory.getHistory().stream())

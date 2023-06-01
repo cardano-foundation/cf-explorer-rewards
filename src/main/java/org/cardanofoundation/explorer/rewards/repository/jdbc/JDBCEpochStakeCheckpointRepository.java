@@ -1,10 +1,11 @@
-package org.cardanofoundation.explorer.rewards.repository.custom;
+package org.cardanofoundation.explorer.rewards.repository.jdbc;
 
 import java.util.List;
 
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Profile;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
@@ -13,7 +14,8 @@ import org.cardanofoundation.explorer.consumercommon.entity.EpochStakeCheckpoint
 
 @Repository
 @RequiredArgsConstructor
-public class CustomEpochStakeCheckpointRepository {
+@Profile("koios")
+public class JDBCEpochStakeCheckpointRepository {
 
   private final JdbcTemplate jdbcTemplate;
 
@@ -21,7 +23,7 @@ public class CustomEpochStakeCheckpointRepository {
   private int batchSize;
 
   @Transactional
-  public void saveCheckpoints(List<EpochStakeCheckpoint> epochStakeCheckpoints) {
+  public void saveAll(List<EpochStakeCheckpoint> epochStakeCheckpoints) {
     String sql = "INSERT INTO epoch_stake_checkpoint (id, view, epoch_checkpoint) "
         + " VALUES (nextval('epoch_stake_checkpoint_id_seq'), ?, ?)"
         + "    ON CONFLICT (view) DO NOTHING";

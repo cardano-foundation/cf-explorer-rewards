@@ -1,4 +1,4 @@
-package org.cardanofoundation.explorer.rewards.repository.custom;
+package org.cardanofoundation.explorer.rewards.repository.jdbc;
 
 
 import java.sql.Types;
@@ -15,7 +15,7 @@ import org.cardanofoundation.explorer.consumercommon.entity.Reward;
 
 @Repository
 @RequiredArgsConstructor
-public class CustomRewardRepository {
+public class JDBCRewardRepository {
 
   private final JdbcTemplate jdbcTemplate;
 
@@ -23,10 +23,10 @@ public class CustomRewardRepository {
   private int batchSize;
 
   @Transactional
-  public void saveRewards(List<Reward> rewards) {
-    String sql = "INSERT INTO reward3 (id, type, amount, earned_epoch, spendable_epoch, addr_id, "
+  public void saveAll(List<Reward> rewards) {
+    String sql = "INSERT INTO reward (id, type, amount, earned_epoch, spendable_epoch, addr_id, "
         + "pool_id)"
-        + " VALUES (nextval('reward3_id_seq'), ?, ?, ?, ?, ?, ?)"
+        + " VALUES (nextval('reward_id_seq'), ?, ?, ?, ?, ?, ?)"
         + " ON CONFLICT (addr_id, type, earned_epoch, pool_id) DO NOTHING";
 
     jdbcTemplate.batchUpdate(sql, rewards, batchSize, (ps, reward) -> {

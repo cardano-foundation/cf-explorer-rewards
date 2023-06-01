@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 
+import org.springframework.context.annotation.Profile;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,8 +21,8 @@ import org.cardanofoundation.explorer.consumercommon.entity.PoolInfoCheckpoint;
 import org.cardanofoundation.explorer.rewards.config.KoiosClient;
 import org.cardanofoundation.explorer.rewards.repository.EpochRepository;
 import org.cardanofoundation.explorer.rewards.repository.PoolInfoCheckpointRepository;
-import org.cardanofoundation.explorer.rewards.repository.custom.CustomPoolInfoCheckpointRepository;
-import org.cardanofoundation.explorer.rewards.repository.custom.CustomPoolInfoRepository;
+import org.cardanofoundation.explorer.rewards.repository.jdbc.JDBCPoolInfoCheckpointRepository;
+import org.cardanofoundation.explorer.rewards.repository.jdbc.JDBCPoolInfoRepository;
 import org.cardanofoundation.explorer.rewards.service.PoolInfoFetchingService;
 import rest.koios.client.backend.api.base.exception.ApiException;
 
@@ -29,13 +30,14 @@ import rest.koios.client.backend.api.base.exception.ApiException;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @RequiredArgsConstructor
 @Slf4j
+@Profile("koios")
 public class PoolInfoFetchingServiceImpl implements PoolInfoFetchingService {
 
   final KoiosClient koiosClient;
   final EpochRepository epochRepository;
   final PoolInfoCheckpointRepository poolInfoCheckpointRepository;
-  final CustomPoolInfoRepository customPoolInfoRepository;
-  final CustomPoolInfoCheckpointRepository customPoolInfoCheckpointRepository;
+  final JDBCPoolInfoRepository jdbcPoolInfoRepository;
+  final JDBCPoolInfoCheckpointRepository jdbcPoolInfoCheckpointRepository;
 
   @Override
   @Async
@@ -68,9 +70,8 @@ public class PoolInfoFetchingServiceImpl implements PoolInfoFetchingService {
     poolInfoCheckpointMap.values()
         .forEach(poolInfoCheckpoint -> poolInfoCheckpoint.setEpochCheckpoint(currentEpoch));
 
-    customPoolInfoCheckpointRepository.saveCheckpoints(
-        poolInfoCheckpointMap.values().stream().toList());
-    customPoolInfoRepository.savePoolInfoList(saveData);
+    jdbcPoolInfoCheckpointRepository.saveAll(poolInfoCheckpointMap.values().stream().toList());
+    jdbcPoolInfoRepository.saveAll(saveData);
 
     return CompletableFuture.completedFuture(Boolean.TRUE);
   }
