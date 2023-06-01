@@ -59,20 +59,15 @@ spring:
     sql-migration-prefix: V
     sql-migration-separator: __
     sql-migration-suffixes: .sql
-    locations: db/migration/dev/final/
-    validate-on-migrate: ${FLYWAY_VALIDATE}
-
+    locations: db/migration
+    default-schema: ${spring.jpa.properties.hibernate.default_schema}
+    schemas: ${spring.jpa.properties.hibernate.default_schema}
+    validate-on-migrate: ${FLYWAY_VALIDATE:false}
 application:
   network: ${NETWORK:mainnet}
   reward:
-    list-size-each-thread: ${LIST_SIZE_EACH_THREAD}
-    parallel-saving:
-      enabled: ${REWARD_PARALLEL_SAVING_ENABLED}
-      reward-sub-list-size: ${REWARD_SUB_LIST_SIZE}
-      thread-num: ${REWARD_PARALLEL_SAVING_THREAD_NUM}
+    list-size-each-thread: ${REWARD_LIST_SIZE_EACH_THREAD:5}
   epoch-stake:
-    list-size-each-thread: ${LIST_SIZE_EACH_THREAD}
-    parallel-saving:
-      enabled: ${EPOCH_STAKE_PARALLEL_SAVING_ENABLED}
-      epoch-stake-sub-list-size: ${EPOCH_STAKE_SUB_LIST_SIZE}
-      thread-num: ${EPOCH_STAKE_PARALLEL_SAVING_THREAD_NUM}
+    list-size-each-thread: ${EPOCH_STAKE_LIST_SIZE_EACH_THREAD:5}
+  pool-info:
+    list-size-each-thread: ${POOL_INFO_LIST_SIZE_EACH_THREAD:500}
