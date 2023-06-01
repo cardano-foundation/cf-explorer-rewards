@@ -1,4 +1,4 @@
-package org.cardanofoundation.explorer.rewards.repository.custom;
+package org.cardanofoundation.explorer.rewards.repository.jdbc;
 
 import java.sql.Types;
 import java.util.List;
@@ -6,6 +6,7 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Profile;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,7 +17,8 @@ import static org.cardanofoundation.explorer.rewards.util.CommonUtils.setNullabl
 
 @Repository
 @RequiredArgsConstructor
-public class CustomPoolInfoRepository {
+@Profile("koios")
+public class JDBCPoolInfoRepository {
 
   private final JdbcTemplate jdbcTemplate;
 
@@ -24,7 +26,7 @@ public class CustomPoolInfoRepository {
   private int batchSize;
 
   @Transactional
-  public void savePoolInfoList(List<PoolInfo> poolInfoList) {
+  public void saveAll(List<PoolInfo> poolInfoList) {
     String sql =
         "INSERT INTO pool_info (id, pool_id, fetched_at_epoch, active_stake, live_stake, live_saturation)"
             + " VALUES (nextval('pool_info_id_seq'),?, ?, ?, ?, ?) "

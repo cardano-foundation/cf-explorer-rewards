@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 
+import org.springframework.context.annotation.Profile;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,10 +28,9 @@ import org.cardanofoundation.explorer.rewards.repository.EpochRepository;
 import org.cardanofoundation.explorer.rewards.repository.PoolHashRepository;
 import org.cardanofoundation.explorer.rewards.repository.RewardCheckpointRepository;
 import org.cardanofoundation.explorer.rewards.repository.StakeAddressRepository;
-import org.cardanofoundation.explorer.rewards.repository.custom.CustomRewardCheckpointRepository;
-import org.cardanofoundation.explorer.rewards.repository.custom.CustomRewardRepository;
+import org.cardanofoundation.explorer.rewards.repository.jdbc.JDBCRewardCheckpointRepository;
+import org.cardanofoundation.explorer.rewards.repository.jdbc.JDBCRewardRepository;
 import org.cardanofoundation.explorer.rewards.service.RewardFetchingService;
-import org.jetbrains.annotations.NotNull;
 import rest.koios.client.backend.api.account.model.AccountReward;
 import rest.koios.client.backend.api.account.model.AccountRewards;
 import rest.koios.client.backend.api.base.exception.ApiException;
@@ -39,6 +39,7 @@ import rest.koios.client.backend.api.base.exception.ApiException;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @RequiredArgsConstructor
 @Slf4j
+@Profile("koios")
 public class RewardFetchingServiceImpl implements RewardFetchingService {
 
   final KoiosClient koiosClient;
@@ -46,8 +47,8 @@ public class RewardFetchingServiceImpl implements RewardFetchingService {
   final PoolHashRepository poolHashRepository;
   final RewardCheckpointRepository rewardCheckpointRepository;
   final EpochRepository epochRepository;
-  final CustomRewardRepository customRewardRepository;
-  final CustomRewardCheckpointRepository customRewardCheckpointRepository;
+  final JDBCRewardRepository jdbcRewardRepository;
+  final JDBCRewardCheckpointRepository jdbcRewardCheckpointRepository;
 
   @Override
   @Async
@@ -105,9 +106,8 @@ public class RewardFetchingServiceImpl implements RewardFetchingService {
         .values()
         .forEach(rewardCheckpoint -> rewardCheckpoint.setEpochCheckpoint(currentEpoch - 1));
 
-    customRewardRepository.saveRewards(result);
-    customRewardCheckpointRepository.saveCheckpoints(
-        rewardCheckpointMap.values().stream().toList());
+    jdbcRewardRepository.saveAll(result);
+    jdbcRewardCheckpointRepository.saveAll(rewardCheckpointMap.values().stream().toList());
 
     log.info("Save {} reward record from koios api: {} ms, with stake_address input size {}",
         result.size(), System.currentTimeMillis() - curTime, stakeAddressList.size());
@@ -115,7 +115,6 @@ public class RewardFetchingServiceImpl implements RewardFetchingService {
     return CompletableFuture.completedFuture(Boolean.TRUE);
   }
 
-  @NotNull
   private Map<String, StakeAddress> getStakeAddressMap(List<String> stakeAddressList) {
     return stakeAddressRepository
         .findByViewIn(stakeAddressList)
@@ -123,7 +122,6 @@ public class RewardFetchingServiceImpl implements RewardFetchingService {
         .collect(Collectors.toMap(StakeAddress::getView, Function.identity()));
   }
 
-  @NotNull
   private Map<String, PoolHash> getPoolHashMap(List<AccountRewards> accountRewardsList) {
     List<String> poolIds = accountRewardsList.stream()
         .flatMap(accountRewards -> accountRewards.getRewards().stream())

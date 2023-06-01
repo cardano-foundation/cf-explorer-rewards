@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 
+import org.springframework.context.annotation.Profile;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,8 +21,8 @@ import org.cardanofoundation.explorer.consumercommon.entity.PoolHistoryCheckpoin
 import org.cardanofoundation.explorer.rewards.config.KoiosClient;
 import org.cardanofoundation.explorer.rewards.repository.EpochRepository;
 import org.cardanofoundation.explorer.rewards.repository.PoolHistoryCheckpointRepository;
-import org.cardanofoundation.explorer.rewards.repository.custom.CustomPoolHistoryCheckpointRepository;
-import org.cardanofoundation.explorer.rewards.repository.custom.CustomPoolHistoryRepository;
+import org.cardanofoundation.explorer.rewards.repository.jdbc.JDBCPoolHistoryCheckpointRepository;
+import org.cardanofoundation.explorer.rewards.repository.jdbc.JDBCPoolHistoryRepository;
 import org.cardanofoundation.explorer.rewards.service.PoolHistoryFetchingService;
 import rest.koios.client.backend.api.base.exception.ApiException;
 
@@ -29,13 +30,14 @@ import rest.koios.client.backend.api.base.exception.ApiException;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @RequiredArgsConstructor
 @Slf4j
+@Profile("koios")
 public class PoolHistoryFetchingServiceImpl implements PoolHistoryFetchingService {
 
   final KoiosClient koiosClient;
   final EpochRepository epochRepository;
   final PoolHistoryCheckpointRepository poolHistoryCheckpointRepository;
-  final CustomPoolHistoryRepository customPoolHistoryRepository;
-  final CustomPoolHistoryCheckpointRepository customPoolHistoryCheckpointRepository;
+  final JDBCPoolHistoryRepository jdbcPoolHistoryRepository;
+  final JDBCPoolHistoryCheckpointRepository jdbcPoolHistoryCheckpointRepository;
 
   @Override
   @Async
@@ -64,16 +66,16 @@ public class PoolHistoryFetchingServiceImpl implements PoolHistoryFetchingServic
             .build()).collect(Collectors.toList());
 
     if (poolHistoryCheckpoint.isPresent()) {
-      customPoolHistoryRepository.savePoolHistoryList(poolHistoryList.stream().filter(
+      jdbcPoolHistoryRepository.saveAll(poolHistoryList.stream().filter(
           poolHistory -> poolHistory.getEpochNo() > poolHistoryCheckpoint.get()
               .getEpochCheckpoint()).collect(Collectors.toList()));
 
       var checkpoint = poolHistoryCheckpoint.get();
       checkpoint.setEpochCheckpoint(currentEpoch - 1);
-      customPoolHistoryCheckpointRepository.saveCheckpoints(List.of(checkpoint));
+      jdbcPoolHistoryCheckpointRepository.saveAll(List.of(checkpoint));
     } else {
-      customPoolHistoryRepository.savePoolHistoryList(poolHistoryList);
-      customPoolHistoryCheckpointRepository.saveCheckpoints(
+      jdbcPoolHistoryRepository.saveAll(poolHistoryList);
+      jdbcPoolHistoryCheckpointRepository.saveAll(
           List.of(PoolHistoryCheckpoint.builder().view(poolId).epochCheckpoint(currentEpoch - 1)
               .build()));
     }

@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 import org.cardanofoundation.explorer.rewards.service.PoolHistoryFetchingService;
@@ -18,6 +19,7 @@ import rest.koios.client.backend.api.base.exception.ApiException;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @RequiredArgsConstructor
 @Slf4j
+@Profile("koios")
 public class PoolHistoryConcurrentFetching {
 
   final PoolHistoryFetchingService poolHistoryFetchingService;

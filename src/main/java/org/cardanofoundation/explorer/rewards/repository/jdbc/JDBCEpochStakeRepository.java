@@ -1,4 +1,4 @@
-package org.cardanofoundation.explorer.rewards.repository.custom;
+package org.cardanofoundation.explorer.rewards.repository.jdbc;
 
 import java.sql.Types;
 import java.util.List;
@@ -16,7 +16,7 @@ import static org.cardanofoundation.explorer.rewards.util.CommonUtils.setNullabl
 
 @Repository
 @RequiredArgsConstructor
-public class CustomEpochStakeRepository {
+public class JDBCEpochStakeRepository {
 
   private final JdbcTemplate jdbcTemplate;
 
@@ -24,9 +24,9 @@ public class CustomEpochStakeRepository {
   private int batchSize;
 
   @Transactional
-  public void saveEpochStakes(List<EpochStake> epochStakeList) {
-    String sql = "INSERT INTO epoch_stake3 (id, epoch_no, amount, addr_id, pool_id)"
-        + " VALUES (nextval('epoch_stake3_id_seq'), ?, ?, ?, ?)"
+  public void saveAll(List<EpochStake> epochStakeList) {
+    String sql = "INSERT INTO epoch_stake (id, epoch_no, amount, addr_id, pool_id)"
+        + " VALUES (nextval('epoch_stake_id_seq'), ?, ?, ?, ?)"
         + " ON CONFLICT (addr_id, epoch_no, pool_id) DO NOTHING";
 
     jdbcTemplate.batchUpdate(sql, epochStakeList, batchSize, (ps, epochStake) -> {
