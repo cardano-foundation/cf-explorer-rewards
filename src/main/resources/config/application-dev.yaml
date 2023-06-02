@@ -51,7 +51,7 @@ spring:
       thread-name-prefix: Executorxx-
   ## Flyway config
   flyway:
-    enabled: ${FLYWAY_ENABLE}
+    enabled: ${FLYWAY_ENABLE:false}
     url: ${spring.datasource.url}
     user: ${spring.datasource.username}
     password: ${spring.datasource.password}
@@ -59,9 +59,10 @@ spring:
     sql-migration-prefix: V
     sql-migration-separator: __
     sql-migration-suffixes: .sql
-    locations: db/migration/dev/final/
-    validate-on-migrate: ${FLYWAY_VALIDATE}
-
+    locations: db/migration
+    default-schema: ${spring.jpa.properties.hibernate.default_schema}
+    schemas: ${spring.jpa.properties.hibernate.default_schema}
+    validate-on-migrate: ${FLYWAY_VALIDATE:false}
 application:
   network: ${NETWORK:mainnet}
   reward:
