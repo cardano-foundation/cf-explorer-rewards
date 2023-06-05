@@ -51,7 +51,7 @@ spring:
       thread-name-prefix: Executorxx-
   ## Flyway config
   flyway:
-    enabled: ${FLYWAY_ENABLE}
+    enabled: ${FLYWAY_ENABLE:false}
     url: ${spring.datasource.url}
     user: ${spring.datasource.username}
     password: ${spring.datasource.password}
