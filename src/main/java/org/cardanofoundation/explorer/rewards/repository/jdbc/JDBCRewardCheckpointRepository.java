@@ -13,14 +13,18 @@ import org.springframework.transaction.annotation.Transactional;
 import org.cardanofoundation.explorer.consumercommon.entity.RewardCheckpoint;
 
 @Repository
-@RequiredArgsConstructor
 @Profile("koios")
 public class JDBCRewardCheckpointRepository {
 
   private final JdbcTemplate jdbcTemplate;
 
-  @Value("${spring.jpa.properties.hibernate.jdbc.batch_size}")
   private int batchSize;
+
+  public JDBCRewardCheckpointRepository(JdbcTemplate jdbcTemplate,
+                                        @Value("${spring.jpa.properties.hibernate.jdbc.batch_size}") int batchSize) {
+    this.jdbcTemplate = jdbcTemplate;
+    this.batchSize = batchSize;
+  }
 
   @Transactional
   public void saveAll(List<RewardCheckpoint> rewardCheckpoints) {

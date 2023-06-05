@@ -13,14 +13,18 @@ import org.springframework.transaction.annotation.Transactional;
 import org.cardanofoundation.explorer.consumercommon.entity.EpochStakeCheckpoint;
 
 @Repository
-@RequiredArgsConstructor
 @Profile("koios")
 public class JDBCEpochStakeCheckpointRepository {
 
   private final JdbcTemplate jdbcTemplate;
 
-  @Value("${spring.jpa.properties.hibernate.jdbc.batch_size}")
-  private int batchSize;
+  private final int batchSize;
+
+  public JDBCEpochStakeCheckpointRepository(JdbcTemplate jdbcTemplate,
+                                            @Value("${spring.jpa.properties.hibernate.jdbc.batch_size}") int batchSize) {
+    this.jdbcTemplate = jdbcTemplate;
+    this.batchSize = batchSize;
+  }
 
   @Transactional
   public void saveAll(List<EpochStakeCheckpoint> epochStakeCheckpoints) {

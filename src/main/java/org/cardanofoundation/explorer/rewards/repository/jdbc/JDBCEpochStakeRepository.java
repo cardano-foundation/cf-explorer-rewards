@@ -6,6 +6,7 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Profile;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,13 +16,19 @@ import org.cardanofoundation.explorer.consumercommon.entity.EpochStake;
 import static org.cardanofoundation.explorer.rewards.util.CommonUtils.setNullableValue;
 
 @Repository
-@RequiredArgsConstructor
+@Profile("koios")
 public class JDBCEpochStakeRepository {
 
   private final JdbcTemplate jdbcTemplate;
 
-  @Value("${spring.jpa.properties.hibernate.jdbc.batch_size}")
-  private int batchSize;
+
+  private final int batchSize;
+
+  public JDBCEpochStakeRepository(JdbcTemplate jdbcTemplate,
+                                  @Value("${spring.jpa.properties.hibernate.jdbc.batch_size}") int batchSize) {
+    this.jdbcTemplate = jdbcTemplate;
+    this.batchSize = batchSize;
+  }
 
   @Transactional
   public void saveAll(List<EpochStake> epochStakeList) {
