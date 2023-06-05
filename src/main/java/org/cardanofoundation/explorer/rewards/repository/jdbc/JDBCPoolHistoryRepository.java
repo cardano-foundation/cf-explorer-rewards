@@ -16,14 +16,18 @@ import org.cardanofoundation.explorer.consumercommon.entity.PoolHistory;
 import static org.cardanofoundation.explorer.rewards.util.CommonUtils.setNullableValue;
 
 @Repository
-@RequiredArgsConstructor
 @Profile("koios")
 public class JDBCPoolHistoryRepository {
 
   private final JdbcTemplate jdbcTemplate;
 
-  @Value("${spring.jpa.properties.hibernate.jdbc.batch_size}")
-  private int batchSize;
+  private final int batchSize;
+
+  public JDBCPoolHistoryRepository(JdbcTemplate jdbcTemplate,
+                                   @Value("${spring.jpa.properties.hibernate.jdbc.batch_size}") int batchSize) {
+    this.jdbcTemplate = jdbcTemplate;
+    this.batchSize = batchSize;
+  }
 
   @Transactional
   public void saveAll(List<PoolHistory> poolHistoryList) {

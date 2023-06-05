@@ -13,14 +13,19 @@ import org.springframework.transaction.annotation.Transactional;
 import org.cardanofoundation.explorer.consumercommon.entity.PoolHistoryCheckpoint;
 
 @Repository
-@RequiredArgsConstructor
 @Profile("koios")
 public class JDBCPoolHistoryCheckpointRepository {
 
   private final JdbcTemplate jdbcTemplate;
 
-  @Value("${spring.jpa.properties.hibernate.jdbc.batch_size}")
-  private int batchSize;
+
+  private final int batchSize;
+
+  public JDBCPoolHistoryCheckpointRepository(JdbcTemplate jdbcTemplate,
+                                             @Value("${spring.jpa.properties.hibernate.jdbc.batch_size}") int batchSize) {
+    this.jdbcTemplate = jdbcTemplate;
+    this.batchSize = batchSize;
+  }
 
   @Transactional
   public void saveAll(List<PoolHistoryCheckpoint> poolHistoryCheckpoints) {
