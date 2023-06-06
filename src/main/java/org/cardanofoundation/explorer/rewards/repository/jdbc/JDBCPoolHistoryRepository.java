@@ -31,7 +31,11 @@ public class JDBCPoolHistoryRepository {
         "INSERT INTO pool_history (id, pool_id, epoch_no, active_stake, active_stake_pct, saturation_pct, "
             + "block_cnt, delegator_cnt, margin, fixed_cost, pool_fees, deleg_rewards, epoch_ros)"
             + " VALUES (nextval('pool_history_id_seq'),?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) "
-            + " ON CONFLICT (pool_id, epoch_no) DO NOTHING";
+            + " ON CONFLICT (pool_id, epoch_no)"
+            + " DO UPDATE SET"
+            + " pool_fees = EXCLUDED.pool_fees,"
+            + " deleg_rewards = EXCLUDED.deleg_rewards,"
+            + " epoch_ros = EXCLUDED.epoch_ros";
 
     jdbcTemplate.batchUpdate(sql, poolHistoryList, batchSize, (ps, poolHistory) -> {
       ps.setString(1, poolHistory.getPoolId());

@@ -10,6 +10,7 @@ import java.util.stream.Collectors;
 
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 
@@ -194,8 +195,10 @@ public class RewardFetchingServiceImpl implements RewardFetchingService {
    * @return
    */
   @Override
+  @SneakyThrows
   public List<String> getStakeAddressListNeedFetchData(List<String> stakeAddressList) {
     Integer currentEpoch = epochRepository.findMaxEpoch();
+    int smallerCurrentEpoch = Math.min(currentEpoch, getCurrentEpochInKoios());
 
     Map<String, RewardCheckpoint> rewardCheckpointMap = rewardCheckpointRepository
         .findByStakeAddressIn(stakeAddressList)
@@ -205,7 +208,7 @@ public class RewardFetchingServiceImpl implements RewardFetchingService {
     return stakeAddressList.stream()
         .filter(stakeAddress -> (
             (!rewardCheckpointMap.containsKey(stakeAddress))
-                || rewardCheckpointMap.get(stakeAddress).getEpochCheckpoint() < currentEpoch - 1
+                || rewardCheckpointMap.get(stakeAddress).getEpochCheckpoint() < smallerCurrentEpoch - 1
         ))
         .collect(Collectors.toList());
   }
