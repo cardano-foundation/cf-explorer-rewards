@@ -102,9 +102,11 @@ public class RewardFetchingServiceImpl implements RewardFetchingService {
       }
     }
 
+    int smallerCurrentEpoch = Math.min(currentEpoch, getCurrentEpochInKoios());
+
     rewardCheckpointMap
         .values()
-        .forEach(rewardCheckpoint -> rewardCheckpoint.setEpochCheckpoint(currentEpoch - 1));
+        .forEach(rewardCheckpoint -> rewardCheckpoint.setEpochCheckpoint(smallerCurrentEpoch - 1));
 
     jdbcRewardRepository.saveAll(result);
     jdbcRewardCheckpointRepository.saveAll(rewardCheckpointMap.values().stream().toList());
@@ -145,6 +147,17 @@ public class RewardFetchingServiceImpl implements RewardFetchingService {
         .accountService()
         .getAccountRewards(stakeAddressList, null, null)
         .getValue();
+  }
+
+  /**
+   * fetch current epoch in Koios
+   * @return
+   * @throws ApiException
+   */
+  private Integer getCurrentEpochInKoios() throws ApiException {
+    var tip = koiosClient.networkService().getChainTip().getValue();
+
+    return tip.getEpochNo();
   }
 
   private Map<String, RewardCheckpoint> getRewardCheckpointMap(List<String> stakeAddressList) {
