@@ -32,7 +32,7 @@ public class EpochStakeConcurrentFetching {
     //TODO: validate stake address list
     var curTime = System.currentTimeMillis();
     // we only fetch data with addresses that are not in the checkpoint table
-    // or in the checkpoint table but have an epoch checkpoint value < (current epoch - 1)
+    // or in the checkpoint table but have an epoch checkpoint value < (current epoch)
     List<String> stakeAddressListNeedFetchData = epochStakeFetchingService.getStakeAddressListNeedFetchData(
         stakeAddressList);
 

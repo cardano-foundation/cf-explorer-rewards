@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 
@@ -48,11 +49,12 @@ public class PoolInfoFetchingServiceImpl implements PoolInfoFetchingService {
     var dataFromKoios = getPoolInfoList(poolIds);
 
     Integer currentEpoch = epochRepository.findMaxEpoch();
+    int smallerCurrentEpoch = Math.min(currentEpoch, getCurrentEpochInKoios());
 
     List<PoolInfo> poolInfoList = dataFromKoios.stream().map(poolInfo ->
             PoolInfo.builder().poolId(poolInfo.getPoolIdBech32())
                 .activeStake(poolInfo.getActiveStake())
-                .fetchedAtEpoch(currentEpoch)
+                .fetchedAtEpoch(smallerCurrentEpoch)
                 .liveStake(poolInfo.getLiveStake())
                 .liveSaturation(poolInfo.getLiveSaturation()).build())
         .collect(Collectors.toList());
@@ -68,7 +70,7 @@ public class PoolInfoFetchingServiceImpl implements PoolInfoFetchingService {
             .getEpochCheckpoint()).collect(Collectors.toList());
 
     poolInfoCheckpointMap.values()
-        .forEach(poolInfoCheckpoint -> poolInfoCheckpoint.setEpochCheckpoint(currentEpoch));
+        .forEach(poolInfoCheckpoint -> poolInfoCheckpoint.setEpochCheckpoint(smallerCurrentEpoch));
 
     jdbcPoolInfoCheckpointRepository.saveAll(poolInfoCheckpointMap.values().stream().toList());
     jdbcPoolInfoRepository.saveAll(saveData);
@@ -114,9 +116,22 @@ public class PoolInfoFetchingServiceImpl implements PoolInfoFetchingService {
         .getValue();
   }
 
+  /**
+   * fetch current epoch in Koios
+   * @return
+   * @throws ApiException
+   */
+  private Integer getCurrentEpochInKoios() throws ApiException {
+    var tip = koiosClient.networkService().getChainTip().getValue();
+
+    return tip.getEpochNo();
+  }
+
   @Override
+  @SneakyThrows
   public List<String> getPoolIdListNeedFetchData(List<String> poolIds) {
     Integer currentEpoch = epochRepository.findMaxEpoch();
+    int smallerCurrentEpoch = Math.min(currentEpoch, getCurrentEpochInKoios());
 
     Map<String, PoolInfoCheckpoint> poolInfoCheckpointMap = poolInfoCheckpointRepository
         .findByViewIn(poolIds)
@@ -127,7 +142,7 @@ public class PoolInfoFetchingServiceImpl implements PoolInfoFetchingService {
         .filter(poolId -> (
             (!poolInfoCheckpointMap.containsKey(poolId))
                 || poolInfoCheckpointMap.get(poolId).getEpochCheckpoint()
-                < currentEpoch
+                < smallerCurrentEpoch
         ))
         .collect(Collectors.toList());
   }

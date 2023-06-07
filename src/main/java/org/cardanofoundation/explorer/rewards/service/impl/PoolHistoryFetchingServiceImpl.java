@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 
@@ -45,11 +46,12 @@ public class PoolHistoryFetchingServiceImpl implements PoolHistoryFetchingServic
   public CompletableFuture<Boolean> fetchData(
       String poolId) throws ApiException {
     var currentEpoch = epochRepository.findMaxEpoch();
+    int smallerCurrentEpoch = Math.min(currentEpoch, getCurrentEpochInKoios());
 
     var dataFromKoios = getPoolHistoryList(poolId);
     var poolHistoryCheckpoint = poolHistoryCheckpointRepository.findByView(poolId);
 
-    List<PoolHistory> poolHistoryList =
+    Map<Integer, PoolHistory> poolHistoryList =
         dataFromKoios.stream().map(poolHistory -> PoolHistory.builder()
             .epochNo(poolHistory.getEpochNo())
             .activeStake(poolHistory.getActiveStake())
@@ -63,21 +65,34 @@ public class PoolHistoryFetchingServiceImpl implements PoolHistoryFetchingServic
             .margin(poolHistory.getMargin())
             .saturationPct(poolHistory.getSaturationPct())
             .poolId(poolId)
-            .build()).collect(Collectors.toList());
+            .build()).collect(
+            Collectors.toMap(PoolHistory::getEpochNo, Function.identity()));
+
+    var poolHistoryCheck = poolHistoryList.get(smallerCurrentEpoch - 2);
+    boolean checkEarnedReward =
+        poolHistoryCheck == null || !poolHistoryCheck.getPoolFees().equals("0")
+            || !poolHistoryCheck.getDelegRewards().equals("0")
+            || poolHistoryCheck.getEpochRos() != 0.0;
 
     if (poolHistoryCheckpoint.isPresent()) {
-      jdbcPoolHistoryRepository.saveAll(poolHistoryList.stream().filter(
+      jdbcPoolHistoryRepository.saveAll(poolHistoryList.values().stream().filter(
           poolHistory -> poolHistory.getEpochNo() > poolHistoryCheckpoint.get()
-              .getEpochCheckpoint()).collect(Collectors.toList()));
+              .getEpochCheckpoint() - 2).collect(Collectors.toList()));
 
       var checkpoint = poolHistoryCheckpoint.get();
-      checkpoint.setEpochCheckpoint(currentEpoch - 1);
+      checkpoint.setEpochCheckpoint(smallerCurrentEpoch - 1);
+      checkpoint.setEarnedReward(checkEarnedReward ? Boolean.TRUE : Boolean.FALSE);
       jdbcPoolHistoryCheckpointRepository.saveAll(List.of(checkpoint));
     } else {
-      jdbcPoolHistoryRepository.saveAll(poolHistoryList);
+      jdbcPoolHistoryRepository.saveAll(poolHistoryList.values().stream().toList());
+      var checkpoint = PoolHistoryCheckpoint.builder().view(poolId)
+          .epochCheckpoint(smallerCurrentEpoch - 1)
+          .build();
+
+      checkpoint.setEarnedReward(checkEarnedReward ? Boolean.TRUE : Boolean.FALSE);
+
       jdbcPoolHistoryCheckpointRepository.saveAll(
-          List.of(PoolHistoryCheckpoint.builder().view(poolId).epochCheckpoint(currentEpoch - 1)
-              .build()));
+          List.of(checkpoint));
     }
 
     return CompletableFuture.completedFuture(Boolean.TRUE);
@@ -98,6 +113,17 @@ public class PoolHistoryFetchingServiceImpl implements PoolHistoryFetchingServic
         .getValue();
   }
 
+  /**
+   * fetch current epoch in Koios
+   *
+   * @return
+   * @throws ApiException
+   */
+  private Integer getCurrentEpochInKoios() throws ApiException {
+    var tip = koiosClient.networkService().getChainTip().getValue();
+
+    return tip.getEpochNo();
+  }
 
   /**
    * get poolId list that are not in the checkpoint table or in the checkpoint table but have an
@@ -107,8 +133,10 @@ public class PoolHistoryFetchingServiceImpl implements PoolHistoryFetchingServic
    * @return
    */
   @Override
+  @SneakyThrows
   public List<String> getPoolIdListNeedFetchData(List<String> poolIds) {
     Integer currentEpoch = epochRepository.findMaxEpoch();
+    int smallerCurrentEpoch = Math.min(currentEpoch, getCurrentEpochInKoios());
 
     Map<String, PoolHistoryCheckpoint> poolHistoryCheckpointMap = poolHistoryCheckpointRepository
         .findByViewIn(poolIds)
@@ -119,7 +147,8 @@ public class PoolHistoryFetchingServiceImpl implements PoolHistoryFetchingServic
         .filter(poolId -> (
             (!poolHistoryCheckpointMap.containsKey(poolId))
                 || poolHistoryCheckpointMap.get(poolId).getEpochCheckpoint()
-                < currentEpoch - 1
+                < smallerCurrentEpoch - 1
+                || !poolHistoryCheckpointMap.get(poolId).getEarnedReward()
         ))
         .collect(Collectors.toList());
   }

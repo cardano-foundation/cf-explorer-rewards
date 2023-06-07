@@ -24,14 +24,15 @@ public class JDBCPoolHistoryCheckpointRepository {
 
   @Transactional
   public void saveAll(List<PoolHistoryCheckpoint> poolHistoryCheckpoints) {
-    String sql = "INSERT INTO pool_history_checkpoint (id, view, epoch_checkpoint) "
-        + " VALUES (nextval('pool_history_checkpoint_id_seq'), ?, ?)"
-        + "    ON CONFLICT (view) DO NOTHING";
+    String sql = "INSERT INTO pool_history_checkpoint (id, view, epoch_checkpoint, earned_reward) "
+        + " VALUES (nextval('pool_history_checkpoint_id_seq'), ?, ?, ?)"
+        + "    ON CONFLICT (view) DO UPDATE SET earned_reward = EXCLUDED.earned_reward";
 
     jdbcTemplate.batchUpdate(sql, poolHistoryCheckpoints, batchSize,
         (ps, poolHistoryCheckpoint) -> {
           ps.setString(1, poolHistoryCheckpoint.getView());
           ps.setLong(2, poolHistoryCheckpoint.getEpochCheckpoint());
+          ps.setBoolean(3, poolHistoryCheckpoint.getEarnedReward());
         });
   }
 }
