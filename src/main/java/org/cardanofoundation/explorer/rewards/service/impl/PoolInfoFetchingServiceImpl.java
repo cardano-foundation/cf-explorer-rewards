@@ -36,9 +36,7 @@ public class PoolInfoFetchingServiceImpl implements PoolInfoFetchingService {
 
   final KoiosClient koiosClient;
   final EpochRepository epochRepository;
-  final PoolInfoCheckpointRepository poolInfoCheckpointRepository;
   final JDBCPoolInfoRepository jdbcPoolInfoRepository;
-  final JDBCPoolInfoCheckpointRepository jdbcPoolInfoCheckpointRepository;
 
   @Override
   @Async
@@ -62,43 +60,9 @@ public class PoolInfoFetchingServiceImpl implements PoolInfoFetchingService {
     log.info("fetch {} pool_info by koios api: {} ms, with poolIds input size {}",
         poolInfoList.size(), System.currentTimeMillis() - curTime, poolIds.size());
 
-    var poolInfoCheckpointMap = getPoolInfoCheckpointMap(poolIds);
-
-    List<PoolInfo> saveData = poolInfoList.stream()
-        .filter(poolInfo -> poolInfoCheckpointMap.containsKey(poolInfo.getPoolId())
-            && poolInfo.getFetchedAtEpoch() > poolInfoCheckpointMap.get(poolInfo.getPoolId())
-            .getEpochCheckpoint()).collect(Collectors.toList());
-
-    poolInfoCheckpointMap.values()
-        .forEach(poolInfoCheckpoint -> poolInfoCheckpoint.setEpochCheckpoint(smallerCurrentEpoch));
-
-    jdbcPoolInfoCheckpointRepository.saveAll(poolInfoCheckpointMap.values().stream().toList());
-    jdbcPoolInfoRepository.saveAll(saveData);
+    jdbcPoolInfoRepository.saveAll(poolInfoList);
 
     return CompletableFuture.completedFuture(Boolean.TRUE);
-  }
-
-  private Map<String, PoolInfoCheckpoint> getPoolInfoCheckpointMap(List<String> poolIds) {
-    Map<String, PoolInfoCheckpoint> poolInfoCheckpointMap = poolInfoCheckpointRepository
-        .findByViewIn(poolIds)
-        .stream()
-        .collect(Collectors.toMap(PoolInfoCheckpoint::getView, Function.identity()));
-
-    List<PoolInfoCheckpoint> epochStakeCheckpoints = poolIds
-        .stream()
-        .filter(
-            poolId -> !poolInfoCheckpointMap.containsKey(poolId))
-        .map(poolId -> PoolInfoCheckpoint.builder()
-            .view(poolId)
-            .epochCheckpoint(0)
-            .build())
-        .collect(Collectors.toList());
-
-    // put all into result
-    poolInfoCheckpointMap.putAll(epochStakeCheckpoints.stream().collect(
-        Collectors.toMap(PoolInfoCheckpoint::getView, Function.identity())));
-
-    return poolInfoCheckpointMap;
   }
 
   /**
@@ -118,6 +82,7 @@ public class PoolInfoFetchingServiceImpl implements PoolInfoFetchingService {
 
   /**
    * fetch current epoch in Koios
+   *
    * @return
    * @throws ApiException
    */
@@ -127,23 +92,4 @@ public class PoolInfoFetchingServiceImpl implements PoolInfoFetchingService {
     return tip.getEpochNo();
   }
 
-  @Override
-  @SneakyThrows
-  public List<String> getPoolIdListNeedFetchData(List<String> poolIds) {
-    Integer currentEpoch = epochRepository.findMaxEpoch();
-    int smallerCurrentEpoch = Math.min(currentEpoch, getCurrentEpochInKoios());
-
-    Map<String, PoolInfoCheckpoint> poolInfoCheckpointMap = poolInfoCheckpointRepository
-        .findByViewIn(poolIds)
-        .stream()
-        .collect(Collectors.toMap(PoolInfoCheckpoint::getView, Function.identity()));
-
-    return poolIds.stream()
-        .filter(poolId -> (
-            (!poolInfoCheckpointMap.containsKey(poolId))
-                || poolInfoCheckpointMap.get(poolId).getEpochCheckpoint()
-                < smallerCurrentEpoch
-        ))
-        .collect(Collectors.toList());
-  }
 }

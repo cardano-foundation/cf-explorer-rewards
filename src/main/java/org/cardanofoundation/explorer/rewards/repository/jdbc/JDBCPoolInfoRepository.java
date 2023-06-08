@@ -30,7 +30,11 @@ public class JDBCPoolInfoRepository {
     String sql =
         "INSERT INTO pool_info (id, pool_id, fetched_at_epoch, active_stake, live_stake, live_saturation)"
             + " VALUES (nextval('pool_info_id_seq'),?, ?, ?, ?, ?) "
-            + " ON CONFLICT (pool_id, fetched_at_epoch) DO NOTHING";
+            + " ON CONFLICT (pool_id, fetched_at_epoch) "
+            + " DO UPDATE SET"
+            + " active_stake = EXCLUDED.active_stake,"
+            + " live_stake = EXCLUDED.live_stake,"
+            + " live_saturation = EXCLUDED.live_saturation";
 
     jdbcTemplate.batchUpdate(sql, poolInfoList, batchSize, (ps, poolInfo) -> {
       ps.setString(1, poolInfo.getPoolId());
