@@ -9,11 +9,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
-import org.cardanofoundation.explorer.rewards.service.EpochStakeFetchingService;
+import org.cardanofoundation.explorer.rewards.service.PoolHistoryFetchingService;
 import rest.koios.client.backend.api.base.exception.ApiException;
 
 @Component
@@ -21,38 +20,34 @@ import rest.koios.client.backend.api.base.exception.ApiException;
 @RequiredArgsConstructor
 @Slf4j
 @Profile("koios")
-public class EpochStakeConcurrentFetching {
+public class PoolHistoryConcurrentFetching {
 
-  final EpochStakeFetchingService epochStakeFetchingService;
+  final PoolHistoryFetchingService poolHistoryFetchingService;
 
-  @Value("${application.epoch-stake.list-size-each-thread}")
-  int subListSize;
-
-  public Boolean fetchDataConcurrently(List<String> stakeAddressList) throws ApiException {
-    //TODO: validate stake address list
+  public Boolean fetchDataConcurrently(List<String> poolIds) throws ApiException {
+    //TODO: validate poolIds
     var curTime = System.currentTimeMillis();
+
     // we only fetch data with addresses that are not in the checkpoint table
     // or in the checkpoint table but have an epoch checkpoint value < (current epoch - 1)
-    List<String> stakeAddressListNeedFetchData = epochStakeFetchingService.getStakeAddressListNeedFetchData(
-        stakeAddressList);
+    List<String> poolIdListNeedFetchData = poolHistoryFetchingService.getPoolIdListNeedFetchData(
+        poolIds);
 
-    if (stakeAddressListNeedFetchData.isEmpty()) {
+    if (poolIdListNeedFetchData.isEmpty()) {
       log.info(
-          "EpochStake: all stake addresses were in checkpoint and had epoch checkpoint = current epoch - 1");
+          "Reward: all poolId were in checkpoint and had epoch checkpoint = current epoch - 1");
       return Boolean.TRUE;
     }
 
     // fetch and store data concurrently
     List<CompletableFuture<Boolean>> futures = new ArrayList<>();
 
-    for (int i = 0; i < stakeAddressListNeedFetchData.size(); i += subListSize) {
-      int endIndex = Math.min(i + subListSize, stakeAddressListNeedFetchData.size());
-      var sublist = stakeAddressListNeedFetchData.subList(i, endIndex);
-
-      CompletableFuture<Boolean> future = epochStakeFetchingService.fetchData(sublist)
+    for (var poolId : poolIdListNeedFetchData) {
+      CompletableFuture<Boolean> future = poolHistoryFetchingService.fetchData(poolId)
           .exceptionally(
               ex -> {
-                log.error("Exception occurred in fetch epoch stake data}: {}", ex.getMessage());
+                log.error("Exception occurred in fetchData for poolId {}: {}", poolId,
+                    ex.getMessage());
                 return Boolean.FALSE;
               }
           );
@@ -63,7 +58,7 @@ public class EpochStakeConcurrentFetching {
 
     boolean result = futures.stream().allMatch(CompletableFuture::join);
 
-    log.info("Fetch and save epoch stake record concurrently by koios api: {} ms",
+    log.info("Fetch and save pool history record concurrently by koios api: {} ms",
         System.currentTimeMillis() - curTime);
 
     return result;

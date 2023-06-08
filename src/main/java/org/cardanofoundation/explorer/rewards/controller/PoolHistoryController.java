@@ -11,20 +11,19 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import org.cardanofoundation.explorer.rewards.concurrent.RewardConcurrentFetching;
+import org.cardanofoundation.explorer.rewards.concurrent.PoolHistoryConcurrentFetching;
 import rest.koios.client.backend.api.base.exception.ApiException;
 
 @RestController
-@RequestMapping("/api/v1/rewards")
+@RequestMapping("/api/v1/pool-history")
 @RequiredArgsConstructor
 @Profile("koios")
-public class RewardController {
+public class PoolHistoryController {
 
-  private final RewardConcurrentFetching rewardConcurrentFetching;
+  private final PoolHistoryConcurrentFetching poolHistoryConcurrentFetching;
 
   @PostMapping("/fetch")
-  public Boolean fetchRewards(@RequestBody Set<String> stakeAddressSet)
-      throws ApiException {
-    return rewardConcurrentFetching.fetchDataConcurrently(new ArrayList<>(stakeAddressSet));
+  public Boolean fetchPoolHistoryList(@RequestBody Set<String> poolIds) throws ApiException {
+    return poolHistoryConcurrentFetching.fetchDataConcurrently(new ArrayList<>(poolIds));
   }
 }
