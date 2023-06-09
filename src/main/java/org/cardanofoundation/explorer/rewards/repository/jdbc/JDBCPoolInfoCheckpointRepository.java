@@ -26,7 +26,7 @@ public class JDBCPoolInfoCheckpointRepository {
   public void saveAll(List<PoolInfoCheckpoint> poolInfoCheckpointList) {
     String sql = "INSERT INTO pool_info_checkpoint (id, view, epoch_checkpoint) "
         + " VALUES (nextval('pool_info_checkpoint_id_seq'), ?, ?)"
-        + "    ON CONFLICT (view) DO NOTHING";
+        + "    ON CONFLICT (view) DO UPDATE SET epoch_checkpoint = EXCLUDED.epoch_checkpoint";
 
     jdbcTemplate.batchUpdate(sql, poolInfoCheckpointList, batchSize,
         (ps, poolInfoCheckpoint) -> {

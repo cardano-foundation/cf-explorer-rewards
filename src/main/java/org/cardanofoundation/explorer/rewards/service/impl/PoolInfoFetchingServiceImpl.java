@@ -37,6 +37,7 @@ public class PoolInfoFetchingServiceImpl implements PoolInfoFetchingService {
   final KoiosClient koiosClient;
   final EpochRepository epochRepository;
   final JDBCPoolInfoRepository jdbcPoolInfoRepository;
+  final JDBCPoolInfoCheckpointRepository jdbcPoolInfoCheckpointRepository;
 
   @Override
   @Async
@@ -60,6 +61,12 @@ public class PoolInfoFetchingServiceImpl implements PoolInfoFetchingService {
     log.info("fetch {} pool_info by koios api: {} ms, with poolIds input size {}",
         poolInfoList.size(), System.currentTimeMillis() - curTime, poolIds.size());
 
+    List<PoolInfoCheckpoint> poolInfoCheckpointList = poolIds.stream()
+        .map(poolId -> PoolInfoCheckpoint.builder()
+            .view(poolId).epochCheckpoint(smallerCurrentEpoch).build())
+        .collect(Collectors.toList());
+
+    jdbcPoolInfoCheckpointRepository.saveAll(poolInfoCheckpointList);
     jdbcPoolInfoRepository.saveAll(poolInfoList);
 
     return CompletableFuture.completedFuture(Boolean.TRUE);
