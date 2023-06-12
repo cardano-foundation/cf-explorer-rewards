@@ -184,7 +184,7 @@ ALTER SEQUENCE pool_info_id_seq OWNED BY pool_info.id;
 --
 CREATE TABLE IF NOT EXISTS pool_info_checkpoint
 (
-    id bigserial NOT NULL,
+    id bigserial NOT NULL,epoddd
     "view" varchar(255) NULL,
     epoch_checkpoint int4 NULL
 );

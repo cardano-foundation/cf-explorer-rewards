@@ -1,14 +1,13 @@
 package org.cardanofoundation.explorer.rewards.service.impl;
 
+import java.math.BigInteger;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 
@@ -17,11 +16,13 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import io.micrometer.common.util.StringUtils;
+import org.cardanofoundation.explorer.consumercommon.entity.PoolHash;
 import org.cardanofoundation.explorer.consumercommon.entity.PoolInfo;
 import org.cardanofoundation.explorer.consumercommon.entity.PoolInfoCheckpoint;
 import org.cardanofoundation.explorer.rewards.config.KoiosClient;
 import org.cardanofoundation.explorer.rewards.repository.EpochRepository;
-import org.cardanofoundation.explorer.rewards.repository.PoolInfoCheckpointRepository;
+import org.cardanofoundation.explorer.rewards.repository.PoolHashRepository;
 import org.cardanofoundation.explorer.rewards.repository.jdbc.JDBCPoolInfoCheckpointRepository;
 import org.cardanofoundation.explorer.rewards.repository.jdbc.JDBCPoolInfoRepository;
 import org.cardanofoundation.explorer.rewards.service.PoolInfoFetchingService;
@@ -36,6 +37,7 @@ public class PoolInfoFetchingServiceImpl implements PoolInfoFetchingService {
 
   final KoiosClient koiosClient;
   final EpochRepository epochRepository;
+  final PoolHashRepository poolHashRepository;
   final JDBCPoolInfoRepository jdbcPoolInfoRepository;
   final JDBCPoolInfoCheckpointRepository jdbcPoolInfoCheckpointRepository;
 
@@ -49,12 +51,20 @@ public class PoolInfoFetchingServiceImpl implements PoolInfoFetchingService {
 
     Integer currentEpoch = epochRepository.findMaxEpoch();
     int smallerCurrentEpoch = Math.min(currentEpoch, getCurrentEpochInKoios());
+    var poolHashMap = poolHashRepository.findByViewIn(poolIds).stream().collect(Collectors.toMap(
+        PoolHash::getView, Function.identity()));
+
+    if (poolHashMap.size() != poolIds.size()) {
+      return CompletableFuture.completedFuture(Boolean.FALSE);
+    }
 
     List<PoolInfo> poolInfoList = dataFromKoios.stream().map(poolInfo ->
-            PoolInfo.builder().poolId(poolInfo.getPoolIdBech32())
-                .activeStake(poolInfo.getActiveStake())
+            PoolInfo.builder().poolId(poolHashMap.get(poolInfo.getPoolIdBech32()).getId())
+                .activeStake(StringUtils.isNotBlank(poolInfo.getActiveStake()) ? new BigInteger(
+                    poolInfo.getActiveStake()) : null)
                 .fetchedAtEpoch(smallerCurrentEpoch)
-                .liveStake(poolInfo.getLiveStake())
+                .liveStake(StringUtils.isNotBlank(poolInfo.getLiveStake()) ? new BigInteger(
+                    poolInfo.getLiveStake()) : null)
                 .liveSaturation(poolInfo.getLiveSaturation()).build())
         .collect(Collectors.toList());
 
