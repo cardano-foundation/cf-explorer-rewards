@@ -81,7 +81,9 @@ public class PoolHistoryFetchingServiceImpl implements PoolHistoryFetchingServic
 
       var checkpoint = poolHistoryCheckpoint.get();
       checkpoint.setEpochCheckpoint(smallerCurrentEpoch - 1);
-      checkpoint.setEarnedReward(checkEarnedReward ? Boolean.TRUE : Boolean.FALSE);
+      checkpoint.setEarnedReward(
+          checkEarnedReward || poolHistoryCheck.getBlockCnt() == 0 ? Boolean.TRUE
+                                                                   : Boolean.FALSE);
       jdbcPoolHistoryCheckpointRepository.saveAll(List.of(checkpoint));
     } else {
       jdbcPoolHistoryRepository.saveAll(poolHistoryList.values().stream().toList());
