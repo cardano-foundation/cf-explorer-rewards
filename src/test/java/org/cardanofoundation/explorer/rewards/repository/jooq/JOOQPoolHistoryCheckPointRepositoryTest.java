@@ -1,0 +1,100 @@
+package org.cardanofoundation.explorer.rewards.repository.jooq;
+
+import static com.cardanofoundation.explorer.rewards.model.Tables.POOL_HISTORY_CHECKPOINT;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.jooq.JooqTest;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.test.context.ActiveProfiles;
+
+import org.jooq.DSLContext;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+
+import org.cardanofoundation.explorer.consumercommon.entity.PoolHistoryCheckpoint;
+
+@JooqTest
+@ActiveProfiles("integration-test")
+@ComponentScan
+class JOOQPoolHistoryCheckPointRepositoryTest extends TestDataBaseContainer {
+
+  @Autowired private DSLContext dsl;
+
+  @Autowired private JOOQPoolHistoryCheckpointRepository jooqPoolHistoryCheckpointRepository;
+
+  @BeforeEach
+  void setUp() {
+    dsl.deleteFrom(POOL_HISTORY_CHECKPOINT).execute();
+  }
+
+  @Test
+  @DisplayName("SaveAll should save success when on conflict view")
+  void saveAll_shouldSaveSuccessWhenOnConflictView() {
+    String poolView = "pool1vxz0deezj5c2950e7arpzfqxzq8zd9kawsullrzjw5rsq0yhxgr";
+    var checkpoint1 =
+        PoolHistoryCheckpoint.builder()
+            .view(poolView)
+            .epochCheckpoint(414)
+            .earnedReward(Boolean.FALSE)
+            .build();
+    // checkpoint2 has same stake address as checkpoint1
+    var checkpoint2 =
+        PoolHistoryCheckpoint.builder()
+            .view(poolView)
+            .epochCheckpoint(415)
+            .earnedReward(Boolean.TRUE)
+            .build();
+
+    List<CompletableFuture<Void>> completableFutures =
+        List.of(
+            CompletableFuture.runAsync(
+                () -> jooqPoolHistoryCheckpointRepository.saveAll(List.of(checkpoint1))),
+            CompletableFuture.runAsync(
+                () -> jooqPoolHistoryCheckpointRepository.saveAll(List.of(checkpoint2))));
+
+    completableFutures.forEach(CompletableFuture::join);
+
+    assertEquals(
+        1, dsl.fetchCount(POOL_HISTORY_CHECKPOINT, POOL_HISTORY_CHECKPOINT.VIEW.eq(poolView)));
+  }
+
+  @Test
+  @DisplayName("SaveAll should save success when does not have conflict view")
+  void saveAll_shouldSaveSuccessWhenDoesNotOnConflictView() {
+    var checkpoint1 =
+        PoolHistoryCheckpoint.builder()
+            .view("poolView1")
+            .epochCheckpoint(414)
+            .earnedReward(Boolean.FALSE)
+            .build();
+
+    var checkpoint2 =
+        PoolHistoryCheckpoint.builder()
+            .view("poolView2")
+            .epochCheckpoint(415)
+            .earnedReward(Boolean.TRUE)
+            .build();
+
+    var checkpoint3 =
+        PoolHistoryCheckpoint.builder()
+            .view("poolView3")
+            .epochCheckpoint(415)
+            .earnedReward(Boolean.TRUE)
+            .build();
+
+    jooqPoolHistoryCheckpointRepository.saveAll(List.of(checkpoint1, checkpoint2, checkpoint3));
+    assertEquals(3, dsl.fetchCount(POOL_HISTORY_CHECKPOINT));
+    assertEquals(
+        1, dsl.fetchCount(POOL_HISTORY_CHECKPOINT, POOL_HISTORY_CHECKPOINT.VIEW.eq("poolView1")));
+    assertEquals(
+        1, dsl.fetchCount(POOL_HISTORY_CHECKPOINT, POOL_HISTORY_CHECKPOINT.VIEW.eq("poolView2")));
+    assertEquals(
+        1, dsl.fetchCount(POOL_HISTORY_CHECKPOINT, POOL_HISTORY_CHECKPOINT.VIEW.eq("poolView3")));
+  }
+}
