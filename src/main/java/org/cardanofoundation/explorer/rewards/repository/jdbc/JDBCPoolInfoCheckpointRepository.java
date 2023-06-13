@@ -2,8 +2,6 @@ package org.cardanofoundation.explorer.rewards.repository.jdbc;
 
 import java.util.List;
 
-import lombok.RequiredArgsConstructor;
-
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -31,7 +29,7 @@ public class JDBCPoolInfoCheckpointRepository {
   public void saveAll(List<PoolInfoCheckpoint> poolInfoCheckpointList) {
     String sql = "INSERT INTO pool_info_checkpoint (id, view, epoch_checkpoint) "
         + " VALUES (nextval('pool_info_checkpoint_id_seq'), ?, ?)"
-        + "    ON CONFLICT (view) DO NOTHING";
+        + " ON CONFLICT (view) DO UPDATE SET epoch_checkpoint = EXCLUDED.epoch_checkpoint";
 
     jdbcTemplate.batchUpdate(sql, poolInfoCheckpointList, batchSize,
         (ps, poolInfoCheckpoint) -> {
