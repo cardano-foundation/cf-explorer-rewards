@@ -37,11 +37,11 @@ public class JDBCPoolInfoRepository {
             + " live_saturation = EXCLUDED.live_saturation";
 
     jdbcTemplate.batchUpdate(sql, poolInfoList, batchSize, (ps, poolInfo) -> {
-      ps.setString(1, poolInfo.getPoolId());
+      ps.setLong(1, poolInfo.getPoolId());
       ps.setInt(2, poolInfo.getFetchedAtEpoch());
 
-      setNullableValue(ps, 3, poolInfo.getActiveStake(), Types.VARCHAR);
-      setNullableValue(ps, 4, poolInfo.getLiveStake(), Types.VARCHAR);
+      setNullableValue(ps, 3, poolInfo.getActiveStake(), Types.BIGINT);
+      setNullableValue(ps, 4, poolInfo.getLiveStake(), Types.BIGINT);
       setNullableValue(ps, 5, poolInfo.getLiveSaturation(), Types.DOUBLE);
     });
   }

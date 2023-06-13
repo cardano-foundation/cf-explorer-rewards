@@ -25,8 +25,8 @@ public class JDBCEpochStakeRepository {
 
   @Transactional
   public void saveAll(List<EpochStake> epochStakeList) {
-    String sql = "INSERT INTO epoch_stake3 (id, epoch_no, amount, addr_id, pool_id)"
-        + " VALUES (nextval('epoch_stake3_id_seq'), ?, ?, ?, ?)"
+    String sql = "INSERT INTO epoch_stake (id, epoch_no, amount, addr_id, pool_id)"
+        + " VALUES (nextval('epoch_stake_id_seq'), ?, ?, ?, ?)"
         + " ON CONFLICT (addr_id, epoch_no, pool_id) DO NOTHING";
 
     jdbcTemplate.batchUpdate(sql, epochStakeList, batchSize, (ps, epochStake) -> {

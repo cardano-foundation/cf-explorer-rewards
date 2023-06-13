@@ -38,18 +38,18 @@ public class JDBCPoolHistoryRepository {
             + " epoch_ros = EXCLUDED.epoch_ros";
 
     jdbcTemplate.batchUpdate(sql, poolHistoryList, batchSize, (ps, poolHistory) -> {
-      ps.setString(1, poolHistory.getPoolId());
+      ps.setLong(1, poolHistory.getPoolId());
       ps.setInt(2, poolHistory.getEpochNo());
 
-      setNullableValue(ps, 3, poolHistory.getActiveStake(), Types.VARCHAR);
+      setNullableValue(ps, 3, poolHistory.getActiveStake(), Types.BIGINT);
       setNullableValue(ps, 4, poolHistory.getActiveStakePct(), Types.DOUBLE);
       setNullableValue(ps, 5, poolHistory.getSaturationPct(), Types.DOUBLE);
       setNullableValue(ps, 6, poolHistory.getBlockCnt(), Types.INTEGER);
       setNullableValue(ps, 7, poolHistory.getDelegatorCnt(), Types.INTEGER);
       setNullableValue(ps, 8, poolHistory.getMargin(), Types.DOUBLE);
-      setNullableValue(ps, 9, poolHistory.getFixedCost(), Types.VARCHAR);
-      setNullableValue(ps, 10, poolHistory.getPoolFees(), Types.VARCHAR);
-      setNullableValue(ps, 11, poolHistory.getDelegRewards(), Types.VARCHAR);
+      setNullableValue(ps, 9, poolHistory.getFixedCost(), Types.BIGINT);
+      setNullableValue(ps, 10, poolHistory.getPoolFees(), Types.BIGINT);
+      setNullableValue(ps, 11, poolHistory.getDelegatorRewards(), Types.BIGINT);
       setNullableValue(ps, 12, poolHistory.getEpochRos(), Types.DOUBLE);
     });
   }
