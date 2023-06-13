@@ -4,6 +4,7 @@ import static com.cardanofoundation.explorer.rewards.model.Tables.POOL_INFO;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.math.BigInteger;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
@@ -39,19 +40,19 @@ class JOOQPoolInfoRepositoryTest extends TestDataBaseContainer {
   void saveAll_shouldSaveSuccessWhenOnConflictUniqueField() {
     var poolInfo1 =
         PoolInfo.builder()
-            .poolId("pool1gmwp956mrfn5hcs7rp7nasa7xpwmx84kkkclyx48xwuh5dltmpj")
+            .poolId(1L)
             .fetchedAtEpoch(315)
-            .activeStake("15233509666142")
-            .liveStake("15122155516487")
+            .activeStake(BigInteger.valueOf(15233509666142L))
+            .liveStake(BigInteger.valueOf(5122155516487L))
             .liveSaturation(21.08)
             .build();
 
     var poolInfo2 =
         PoolInfo.builder()
-            .poolId("pool1gmwp956mrfn5hcs7rp7nasa7xpwmx84kkkclyx48xwuh5dltmpj")
-            .fetchedAtEpoch(316)
-            .activeStake("15233509666142")
-            .liveStake("15122155516487")
+            .poolId(1L)
+            .fetchedAtEpoch(315)
+            .activeStake(BigInteger.valueOf(15233509666142L))
+            .liveStake(BigInteger.valueOf(15122155516487L))
             .liveSaturation(21.08)
             .build();
 
@@ -64,7 +65,7 @@ class JOOQPoolInfoRepositoryTest extends TestDataBaseContainer {
 
     completableFutures.forEach(CompletableFuture::join);
 
-    assertEquals(2, dsl.fetchCount(POOL_INFO));
+    assertEquals(1, dsl.fetchCount(POOL_INFO));
   }
 
   @Test
@@ -72,28 +73,28 @@ class JOOQPoolInfoRepositoryTest extends TestDataBaseContainer {
   void saveAll_shouldSaveSuccessWhenDoesNotOnConflictUniqueField() {
     var poolInfo1 =
         PoolInfo.builder()
-            .poolId("pool1gmwp956mrfn5hcs7rp7nasa7xpwmx84kkkclyx48xwuh5dltmpj")
+            .poolId(1L)
             .fetchedAtEpoch(315)
-            .activeStake("15233509666142")
-            .liveStake("15122155516487")
+            .activeStake(BigInteger.valueOf(15233509666142L))
+            .liveStake(BigInteger.valueOf(15122155516487L))
             .liveSaturation(21.08)
             .build();
 
     var poolInfo2 =
         PoolInfo.builder()
-            .poolId("pool1gmwp956mrfn5hcs7rp7nasa7xpwmx84kkkclyx48xwuh5dltmpj")
+            .poolId(1L)
             .fetchedAtEpoch(316)
-            .activeStake("15233509666142")
-            .liveStake("15122155516487")
+            .activeStake(BigInteger.valueOf(15233509666142L))
+            .liveStake(BigInteger.valueOf(15122155516487L))
             .liveSaturation(21.08)
             .build();
 
     var poolInfo3 =
         PoolInfo.builder()
-            .poolId("pool1gmwp956mrfn5hcs7rp7nasa7xpwmx84kkkclyx48xwuh5dltmpj")
+            .poolId(1L)
             .fetchedAtEpoch(317)
-            .activeStake("15233509666142")
-            .liveStake("15122155516487")
+            .activeStake(BigInteger.valueOf(15233509666142L))
+            .liveStake(BigInteger.valueOf(15122155516487L))
             .liveSaturation(21.08)
             .build();
 

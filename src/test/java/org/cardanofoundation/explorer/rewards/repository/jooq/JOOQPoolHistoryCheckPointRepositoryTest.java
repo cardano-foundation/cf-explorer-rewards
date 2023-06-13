@@ -41,14 +41,14 @@ class JOOQPoolHistoryCheckPointRepositoryTest extends TestDataBaseContainer {
         PoolHistoryCheckpoint.builder()
             .view(poolView)
             .epochCheckpoint(414)
-            .earnedReward(Boolean.FALSE)
+            .isSpendableReward(Boolean.FALSE)
             .build();
     // checkpoint2 has same stake address as checkpoint1
     var checkpoint2 =
         PoolHistoryCheckpoint.builder()
             .view(poolView)
             .epochCheckpoint(415)
-            .earnedReward(Boolean.TRUE)
+            .isSpendableReward(Boolean.TRUE)
             .build();
 
     List<CompletableFuture<Void>> completableFutures =
@@ -71,21 +71,21 @@ class JOOQPoolHistoryCheckPointRepositoryTest extends TestDataBaseContainer {
         PoolHistoryCheckpoint.builder()
             .view("poolView1")
             .epochCheckpoint(414)
-            .earnedReward(Boolean.FALSE)
+            .isSpendableReward(Boolean.FALSE)
             .build();
 
     var checkpoint2 =
         PoolHistoryCheckpoint.builder()
             .view("poolView2")
             .epochCheckpoint(415)
-            .earnedReward(Boolean.TRUE)
+            .isSpendableReward(Boolean.TRUE)
             .build();
 
     var checkpoint3 =
         PoolHistoryCheckpoint.builder()
             .view("poolView3")
             .epochCheckpoint(415)
-            .earnedReward(Boolean.TRUE)
+            .isSpendableReward(Boolean.TRUE)
             .build();
 
     jooqPoolHistoryCheckpointRepository.saveAll(List.of(checkpoint1, checkpoint2, checkpoint3));

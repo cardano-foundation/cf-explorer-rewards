@@ -4,6 +4,7 @@ import static com.cardanofoundation.explorer.rewards.model.Tables.POOL_HISTORY;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.math.BigInteger;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
@@ -39,31 +40,31 @@ class JOOQPoolHistoryRepositoryTest extends TestDataBaseContainer {
   void saveAll_shouldSaveSuccessWhenOnConflictUniqueField() {
     var poolHistory1 =
         PoolHistory.builder()
-            .poolId("pool1gmwp956mrfn5hcs7rp7nasa7xpwmx84kkkclyx48xwuh5dltmpj")
+            .poolId(1L)
             .epochNo(314)
-            .activeStake("158530782")
+            .activeStake(BigInteger.valueOf(158530782))
             .activeStakePct(0.0000006715986583)
             .blockCnt(0)
             .delegatorCnt(4)
             .margin(0.0)
-            .fixedCost("340000000")
-            .poolFees("0")
-            .delegRewards("0")
+            .fixedCost(BigInteger.valueOf(340000000))
+            .poolFees(BigInteger.valueOf(0))
+            .delegatorRewards(BigInteger.valueOf(0))
             .epochRos(0.0)
             .build();
 
     var poolHistory2 =
         PoolHistory.builder()
-            .poolId("pool1gmwp956mrfn5hcs7rp7nasa7xpwmx84kkkclyx48xwuh5dltmpj")
+            .poolId(1L)
             .epochNo(315)
-            .activeStake("1223213")
+            .activeStake(BigInteger.valueOf(1223213))
             .activeStakePct(0.0000006715986583)
             .blockCnt(0)
             .delegatorCnt(100)
             .margin(0.0)
-            .fixedCost("340000000")
-            .poolFees("123444")
-            .delegRewards("0")
+            .fixedCost(BigInteger.valueOf(340000000))
+            .poolFees(BigInteger.valueOf(123444))
+            .delegatorRewards(BigInteger.valueOf(0))
             .epochRos(0.0)
             .build();
 
@@ -88,46 +89,46 @@ class JOOQPoolHistoryRepositoryTest extends TestDataBaseContainer {
   void saveAll_shouldSaveSuccessWhenDoesNotOnConflictUniqueField() {
     var poolHistory1 =
         PoolHistory.builder()
-            .poolId("pool1gmwp956mrfn5hcs7rp7nasa7xpwmx84kkkclyx48xwuh5dltmpj")
+            .poolId(1L)
             .epochNo(314)
-            .activeStake("158530782")
+            .activeStake(BigInteger.valueOf(158530782))
             .activeStakePct(0.0000006715986583)
             .blockCnt(0)
             .delegatorCnt(4)
             .margin(0.0)
-            .fixedCost("340000000")
-            .poolFees("0")
-            .delegRewards("0")
+            .fixedCost(BigInteger.valueOf(340000000))
+            .poolFees(BigInteger.valueOf(0))
+            .delegatorRewards(BigInteger.valueOf(0))
             .epochRos(0.0)
             .build();
 
     var poolHistory2 =
         PoolHistory.builder()
-            .poolId("pool1gmwp956mrfn5hcs7rp7nasa7xpwmx84kkkclyx48xwuh5dltmpj")
+            .poolId(1L)
             .epochNo(315)
-            .activeStake("1223213")
+            .activeStake(BigInteger.valueOf(1223213))
             .activeStakePct(0.0000006715986583)
             .blockCnt(0)
             .delegatorCnt(100)
             .margin(0.0)
-            .fixedCost("340000000")
-            .poolFees("123444")
-            .delegRewards("0")
+            .fixedCost(BigInteger.valueOf(340000000))
+            .poolFees(BigInteger.valueOf(123444))
+            .delegatorRewards(BigInteger.valueOf(0))
             .epochRos(0.0)
             .build();
 
     var poolHistory3 =
         PoolHistory.builder()
-            .poolId("pool1gmwp956mrfn5hcs7rp7nasa7xpwmx84kkkclyx48xwuh5dltmpj")
+            .poolId(1L)
             .epochNo(316)
-            .activeStake("1223213")
+            .activeStake(BigInteger.valueOf(1223213))
             .activeStakePct(0.0000006715986583)
             .blockCnt(0)
             .delegatorCnt(100)
             .margin(0.0)
-            .fixedCost("340000000")
-            .poolFees("123444")
-            .delegRewards("0")
+            .fixedCost(BigInteger.valueOf(340000000))
+            .poolFees(BigInteger.valueOf(123444))
+            .delegatorRewards(BigInteger.valueOf(0))
             .epochRos(0.0)
             .build();
 
