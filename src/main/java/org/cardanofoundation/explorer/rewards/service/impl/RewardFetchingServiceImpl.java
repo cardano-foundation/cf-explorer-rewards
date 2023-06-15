@@ -85,8 +85,8 @@ public class RewardFetchingServiceImpl implements RewardFetchingService {
       }
 
       for (var accountReward : accountRewards.getRewards()) {
-        // if earned epoch <= epoch checkpoint, data was saved
-        if (accountReward.getEarnedEpoch() <= rewardCheckpoint.getEpochCheckpoint()) {
+        // if earned epoch < epoch checkpoint, data was saved
+        if (accountReward.getEarnedEpoch() < rewardCheckpoint.getEpochCheckpoint()) {
           continue;
         }
 
