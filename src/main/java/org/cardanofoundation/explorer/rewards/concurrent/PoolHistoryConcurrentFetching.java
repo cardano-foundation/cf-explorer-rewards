@@ -28,6 +28,9 @@ public class PoolHistoryConcurrentFetching {
     //TODO: validate poolIds
     var curTime = System.currentTimeMillis();
 
+    if (poolIds.isEmpty()) {
+      return Boolean.TRUE;
+    }
     // we only fetch data with addresses that are not in the checkpoint table
     // or in the checkpoint table but have an epoch checkpoint value < (current epoch - 1)
     List<String> poolIdListNeedFetchData = poolHistoryFetchingService.getPoolIdListNeedFetchData(

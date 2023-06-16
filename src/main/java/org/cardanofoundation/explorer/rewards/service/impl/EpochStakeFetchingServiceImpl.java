@@ -84,7 +84,7 @@ public class EpochStakeFetchingServiceImpl implements EpochStakeFetchingService 
           return accountHistory.getHistory().stream()
               .filter(accountHistoryInner ->
                   accountHistoryInner.getEpochNo() > epochStakeCheckpoint.getEpochCheckpoint()
-                      && !Objects.equals(accountHistoryInner.getEpochNo(), currentEpoch))
+                      && accountHistoryInner.getEpochNo() < currentEpoch + 2)
               .map(accountHistoryInner ->
                   EpochStake.builder()
                       .epochNo(accountHistoryInner.getEpochNo())
@@ -97,7 +97,7 @@ public class EpochStakeFetchingServiceImpl implements EpochStakeFetchingService 
 
     epochStakeCheckpointMap
         .values()
-        .forEach(epochCheckpoint -> epochCheckpoint.setEpochCheckpoint(currentEpoch - 1));
+        .forEach(epochCheckpoint -> epochCheckpoint.setEpochCheckpoint(currentEpoch));
     jdbcEpochStakeRepository.saveAll(saveData);
     jdbcEpochStakeCheckpointRepository.saveAll(
         epochStakeCheckpointMap.values().stream().toList());
@@ -165,7 +165,7 @@ public class EpochStakeFetchingServiceImpl implements EpochStakeFetchingService 
 
   /**
    * get stake address list that are not in the checkpoint table or in the checkpoint table but have
-   * an epoch checkpoint value < (current epoch - 1)
+   * an epoch checkpoint value < (current epoch)
    *
    * @param stakeAddressList
    * @return
@@ -182,7 +182,7 @@ public class EpochStakeFetchingServiceImpl implements EpochStakeFetchingService 
     return stakeAddressList.stream()
         .filter(stakeAddress ->
             ((!epochStakeCheckpointMap.containsKey(stakeAddress))
-                || epochStakeCheckpointMap.get(stakeAddress).getEpochCheckpoint() < currentEpoch - 1
+                || epochStakeCheckpointMap.get(stakeAddress).getEpochCheckpoint() < currentEpoch
             ))
         .collect(Collectors.toList());
   }

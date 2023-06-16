@@ -2,8 +2,6 @@ package org.cardanofoundation.explorer.rewards.repository.jdbc;
 
 import java.util.List;
 
-import lombok.RequiredArgsConstructor;
-
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -18,7 +16,7 @@ public class JDBCRewardCheckpointRepository {
 
   private final JdbcTemplate jdbcTemplate;
 
-  private int batchSize;
+  private final int batchSize;
 
   public JDBCRewardCheckpointRepository(JdbcTemplate jdbcTemplate,
                                         @Value("${spring.jpa.properties.hibernate.jdbc.batch_size}") int batchSize) {

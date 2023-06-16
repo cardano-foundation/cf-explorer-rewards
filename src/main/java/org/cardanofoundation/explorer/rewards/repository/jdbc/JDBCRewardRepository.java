@@ -18,7 +18,7 @@ public class JDBCRewardRepository {
 
   private final JdbcTemplate jdbcTemplate;
 
-  private int batchSize;
+  private final int batchSize;
 
   public JDBCRewardRepository(JdbcTemplate jdbcTemplate,
                               @Value("${spring.jpa.properties.hibernate.jdbc.batch_size}") int batchSize) {

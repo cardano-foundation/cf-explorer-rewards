@@ -3,8 +3,6 @@ package org.cardanofoundation.explorer.rewards.repository.jdbc;
 import java.sql.Types;
 import java.util.List;
 
-import lombok.RequiredArgsConstructor;
-
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -34,15 +32,20 @@ public class JDBCPoolInfoRepository {
     String sql =
         "INSERT INTO pool_info (id, pool_id, fetched_at_epoch, active_stake, live_stake, live_saturation)"
             + " VALUES (nextval('pool_info_id_seq'),?, ?, ?, ?, ?) "
-            + " ON CONFLICT (pool_id, fetched_at_epoch) DO NOTHING";
+            + " ON CONFLICT (pool_id, fetched_at_epoch) "
+            + " DO UPDATE SET"
+            + " active_stake = EXCLUDED.active_stake,"
+            + " live_stake = EXCLUDED.live_stake,"
+            + " live_saturation = EXCLUDED.live_saturation";
 
     jdbcTemplate.batchUpdate(sql, poolInfoList, batchSize, (ps, poolInfo) -> {
-      ps.setString(1, poolInfo.getPoolId());
+      ps.setLong(1, poolInfo.getPoolId());
       ps.setInt(2, poolInfo.getFetchedAtEpoch());
 
-      setNullableValue(ps, 3, poolInfo.getActiveStake(), Types.VARCHAR);
-      setNullableValue(ps, 4, poolInfo.getLiveStake(), Types.VARCHAR);
+      setNullableValue(ps, 3, poolInfo.getActiveStake(), Types.BIGINT);
+      setNullableValue(ps, 4, poolInfo.getLiveStake(), Types.BIGINT);
       setNullableValue(ps, 5, poolInfo.getLiveSaturation(), Types.DOUBLE);
     });
   }
+
 }
