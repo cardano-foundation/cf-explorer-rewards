@@ -2,6 +2,7 @@ package org.cardanofoundation.explorer.rewards.repository.jooq;
 
 import static com.cardanofoundation.explorer.rewards.model.Tables.REWARD;
 
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -32,7 +33,7 @@ public class JOOQRewardRepository {
       String type = reward.getType().getValue();
       Long earnedEpoch = reward.getEarnedEpoch().longValue();
       Long spendableEpoch = reward.getSpendableEpoch().longValue();
-      Long amount = reward.getAmount().longValue();
+      BigInteger amount = reward.getAmount();
       var query =
           dsl.insertInto(
                   REWARD,

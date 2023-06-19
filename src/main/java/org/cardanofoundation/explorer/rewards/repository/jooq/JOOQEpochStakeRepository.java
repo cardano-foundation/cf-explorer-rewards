@@ -2,7 +2,7 @@ package org.cardanofoundation.explorer.rewards.repository.jooq;
 
 import static com.cardanofoundation.explorer.rewards.model.Tables.EPOCH_STAKE;
 
-import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -33,7 +33,7 @@ public class JOOQEpochStakeRepository {
       Long addrId = (epochStake.getAddr() != null) ? epochStake.getAddr().getId() : null;
       Long poolId = (epochStake.getPool() != null) ? epochStake.getPool().getId() : null;
       Integer epochNo = epochStake.getEpochNo();
-      BigDecimal amount = new BigDecimal(epochStake.getAmount());
+      BigInteger amount = epochStake.getAmount();
       var query =
           dsl.insertInto(
                   EPOCH_STAKE,
