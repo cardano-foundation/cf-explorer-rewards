@@ -29,8 +29,8 @@ import org.cardanofoundation.explorer.rewards.repository.EpochRepository;
 import org.cardanofoundation.explorer.rewards.repository.PoolHashRepository;
 import org.cardanofoundation.explorer.rewards.repository.RewardCheckpointRepository;
 import org.cardanofoundation.explorer.rewards.repository.StakeAddressRepository;
-import org.cardanofoundation.explorer.rewards.repository.jdbc.JDBCRewardCheckpointRepository;
-import org.cardanofoundation.explorer.rewards.repository.jdbc.JDBCRewardRepository;
+import org.cardanofoundation.explorer.rewards.repository.jooq.JOOQRewardCheckpointRepository;
+import org.cardanofoundation.explorer.rewards.repository.jooq.JOOQRewardRepository;
 import org.cardanofoundation.explorer.rewards.service.RewardFetchingService;
 import rest.koios.client.backend.api.account.model.AccountReward;
 import rest.koios.client.backend.api.account.model.AccountRewards;
@@ -48,8 +48,8 @@ public class RewardFetchingServiceImpl implements RewardFetchingService {
   final PoolHashRepository poolHashRepository;
   final RewardCheckpointRepository rewardCheckpointRepository;
   final EpochRepository epochRepository;
-  final JDBCRewardRepository jdbcRewardRepository;
-  final JDBCRewardCheckpointRepository jdbcRewardCheckpointRepository;
+  final JOOQRewardRepository jooqRewardRepository;
+  final JOOQRewardCheckpointRepository jooqRewardCheckpointRepository;
 
   @Override
   @Async
@@ -109,8 +109,8 @@ public class RewardFetchingServiceImpl implements RewardFetchingService {
         .values()
         .forEach(rewardCheckpoint -> rewardCheckpoint.setEpochCheckpoint(smallerCurrentEpoch - 1));
 
-    jdbcRewardRepository.saveAll(result);
-    jdbcRewardCheckpointRepository.saveAll(rewardCheckpointMap.values().stream().toList());
+    jooqRewardRepository.saveAll(result);
+    jooqRewardCheckpointRepository.saveAll(rewardCheckpointMap.values().stream().toList());
 
     log.info("Save {} reward record from koios api: {} ms, with stake_address input size {}",
         result.size(), System.currentTimeMillis() - curTime, stakeAddressList.size());

@@ -3,7 +3,6 @@ package org.cardanofoundation.explorer.rewards.service.impl;
 import java.math.BigInteger;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -28,8 +27,8 @@ import org.cardanofoundation.explorer.rewards.repository.EpochRepository;
 import org.cardanofoundation.explorer.rewards.repository.EpochStakeCheckpointRepository;
 import org.cardanofoundation.explorer.rewards.repository.PoolHashRepository;
 import org.cardanofoundation.explorer.rewards.repository.StakeAddressRepository;
-import org.cardanofoundation.explorer.rewards.repository.jdbc.JDBCEpochStakeCheckpointRepository;
-import org.cardanofoundation.explorer.rewards.repository.jdbc.JDBCEpochStakeRepository;
+import org.cardanofoundation.explorer.rewards.repository.jooq.JOOQEpochStakeCheckpointRepository;
+import org.cardanofoundation.explorer.rewards.repository.jooq.JOOQEpochStakeRepository;
 import org.cardanofoundation.explorer.rewards.service.EpochStakeFetchingService;
 import rest.koios.client.backend.api.account.model.AccountHistory;
 import rest.koios.client.backend.api.account.model.AccountHistoryInner;
@@ -47,8 +46,8 @@ public class EpochStakeFetchingServiceImpl implements EpochStakeFetchingService 
   final PoolHashRepository poolHashRepository;
   final EpochStakeCheckpointRepository epochStakeCheckpointRepository;
   final EpochRepository epochRepository;
-  final JDBCEpochStakeRepository jdbcEpochStakeRepository;
-  final JDBCEpochStakeCheckpointRepository jdbcEpochStakeCheckpointRepository;
+  final JOOQEpochStakeRepository jooqEpochStakeRepository;
+  final JOOQEpochStakeCheckpointRepository jooqEpochStakeCheckpointRepository;
 
   @Override
   @Transactional(rollbackFor = {Exception.class})
@@ -98,8 +97,8 @@ public class EpochStakeFetchingServiceImpl implements EpochStakeFetchingService 
     epochStakeCheckpointMap
         .values()
         .forEach(epochCheckpoint -> epochCheckpoint.setEpochCheckpoint(currentEpoch));
-    jdbcEpochStakeRepository.saveAll(saveData);
-    jdbcEpochStakeCheckpointRepository.saveAll(
+    jooqEpochStakeRepository.saveAll(saveData);
+    jooqEpochStakeCheckpointRepository.saveAll(
         epochStakeCheckpointMap.values().stream().toList());
 
     return CompletableFuture.completedFuture(Boolean.TRUE);

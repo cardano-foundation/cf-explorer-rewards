@@ -25,9 +25,9 @@ import org.cardanofoundation.explorer.rewards.config.KoiosClient;
 import org.cardanofoundation.explorer.rewards.repository.EpochRepository;
 import org.cardanofoundation.explorer.rewards.repository.PoolHashRepository;
 import org.cardanofoundation.explorer.rewards.repository.PoolHistoryCheckpointRepository;
-import org.cardanofoundation.explorer.rewards.repository.jdbc.JDBCPoolHistoryCheckpointRepository;
-import org.cardanofoundation.explorer.rewards.repository.jdbc.JDBCPoolHistoryRepository;
 import org.cardanofoundation.explorer.rewards.service.PoolHistoryFetchingService;
+import org.cardanofoundation.explorer.rewards.repository.jooq.JOOQPoolHistoryCheckpointRepository;
+import org.cardanofoundation.explorer.rewards.repository.jooq.JOOQPoolHistoryRepository;
 import rest.koios.client.backend.api.base.exception.ApiException;
 
 @Service
@@ -40,9 +40,9 @@ public class PoolHistoryFetchingServiceImpl implements PoolHistoryFetchingServic
   final KoiosClient koiosClient;
   final EpochRepository epochRepository;
   final PoolHistoryCheckpointRepository poolHistoryCheckpointRepository;
+  final JOOQPoolHistoryRepository jooqPoolHistoryRepository;
+  final JOOQPoolHistoryCheckpointRepository jooqPoolHistoryCheckpointRepository;
   final PoolHashRepository poolHashRepository;
-  final JDBCPoolHistoryRepository jdbcPoolHistoryRepository;
-  final JDBCPoolHistoryCheckpointRepository jdbcPoolHistoryCheckpointRepository;
 
   @Override
   @Async
@@ -92,7 +92,7 @@ public class PoolHistoryFetchingServiceImpl implements PoolHistoryFetchingServic
             || poolHistoryCheck.getEpochRos() != 0.0;
 
     if (poolHistoryCheckpoint.isPresent()) {
-      jdbcPoolHistoryRepository.saveAll(poolHistoryList.values().stream().filter(
+      jooqPoolHistoryRepository.saveAll(poolHistoryList.values().stream().filter(
           poolHistory -> poolHistory.getEpochNo() > poolHistoryCheckpoint.get()
               .getEpochCheckpoint() - 2).collect(Collectors.toList()));
 
@@ -101,16 +101,16 @@ public class PoolHistoryFetchingServiceImpl implements PoolHistoryFetchingServic
       checkpoint.setIsSpendableReward(
           isSpendableReward || poolHistoryCheck.getBlockCnt() == 0 ? Boolean.TRUE
                                                                    : Boolean.FALSE);
-      jdbcPoolHistoryCheckpointRepository.saveAll(List.of(checkpoint));
+      jooqPoolHistoryCheckpointRepository.saveAll(List.of(checkpoint));
     } else {
-      jdbcPoolHistoryRepository.saveAll(poolHistoryList.values().stream().toList());
+      jooqPoolHistoryRepository.saveAll(poolHistoryList.values().stream().toList());
       var checkpoint = PoolHistoryCheckpoint.builder().view(poolId)
           .epochCheckpoint(smallerCurrentEpoch - 1)
           .build();
 
       checkpoint.setIsSpendableReward(isSpendableReward ? Boolean.TRUE : Boolean.FALSE);
 
-      jdbcPoolHistoryCheckpointRepository.saveAll(
+      jooqPoolHistoryCheckpointRepository.saveAll(
           List.of(checkpoint));
     }
 
