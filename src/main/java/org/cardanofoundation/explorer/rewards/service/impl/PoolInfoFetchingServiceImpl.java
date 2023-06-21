@@ -22,9 +22,9 @@ import org.cardanofoundation.explorer.consumercommon.entity.PoolInfo;
 import org.cardanofoundation.explorer.consumercommon.entity.PoolInfoCheckpoint;
 import org.cardanofoundation.explorer.rewards.config.KoiosClient;
 import org.cardanofoundation.explorer.rewards.repository.EpochRepository;
+import org.cardanofoundation.explorer.rewards.repository.jooq.JOOQPoolInfoCheckpointRepository;
+import org.cardanofoundation.explorer.rewards.repository.jooq.JOOQPoolInfoRepository;
 import org.cardanofoundation.explorer.rewards.repository.PoolHashRepository;
-import org.cardanofoundation.explorer.rewards.repository.jdbc.JDBCPoolInfoCheckpointRepository;
-import org.cardanofoundation.explorer.rewards.repository.jdbc.JDBCPoolInfoRepository;
 import org.cardanofoundation.explorer.rewards.service.PoolInfoFetchingService;
 import rest.koios.client.backend.api.base.exception.ApiException;
 
@@ -37,9 +37,9 @@ public class PoolInfoFetchingServiceImpl implements PoolInfoFetchingService {
 
   final KoiosClient koiosClient;
   final EpochRepository epochRepository;
+  final JOOQPoolInfoRepository jooqPoolInfoRepository;
+  final JOOQPoolInfoCheckpointRepository jooqPoolInfoCheckpointRepository;
   final PoolHashRepository poolHashRepository;
-  final JDBCPoolInfoRepository jdbcPoolInfoRepository;
-  final JDBCPoolInfoCheckpointRepository jdbcPoolInfoCheckpointRepository;
 
   @Override
   @Async
@@ -76,8 +76,8 @@ public class PoolInfoFetchingServiceImpl implements PoolInfoFetchingService {
             .view(poolId).epochCheckpoint(smallerCurrentEpoch).build())
         .collect(Collectors.toList());
 
-    jdbcPoolInfoCheckpointRepository.saveAll(poolInfoCheckpointList);
-    jdbcPoolInfoRepository.saveAll(poolInfoList);
+    jooqPoolInfoCheckpointRepository.saveAll(poolInfoCheckpointList);
+    jooqPoolInfoRepository.saveAll(poolInfoList);
 
     return CompletableFuture.completedFuture(Boolean.TRUE);
   }
