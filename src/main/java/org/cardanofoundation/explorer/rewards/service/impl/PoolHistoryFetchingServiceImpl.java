@@ -47,8 +47,8 @@ public class PoolHistoryFetchingServiceImpl implements PoolHistoryFetchingServic
   @Override
   @Async
   @Transactional(rollbackFor = {Exception.class})
-  public CompletableFuture<Boolean> fetchData(
-      String poolId) throws ApiException {
+  @SneakyThrows
+  public CompletableFuture<Boolean> fetchData(String poolId) {
     var poolHash = poolHashRepository.findByView(poolId);
     if (poolHash.isEmpty()) {
       return CompletableFuture.completedFuture(Boolean.FALSE);
@@ -152,8 +152,7 @@ public class PoolHistoryFetchingServiceImpl implements PoolHistoryFetchingServic
    * @return
    */
   @Override
-  @SneakyThrows
-  public List<String> getPoolIdListNeedFetchData(List<String> poolIds) {
+  public List<String> getPoolIdListNeedFetchData(List<String> poolIds) throws ApiException {
     Integer currentEpoch = epochRepository.findMaxEpoch();
     int smallerCurrentEpoch = Math.min(currentEpoch, getCurrentEpochInKoios());
 

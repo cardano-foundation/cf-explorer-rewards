@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 
@@ -44,7 +45,8 @@ public class PoolInfoFetchingServiceImpl implements PoolInfoFetchingService {
   @Override
   @Async
   @Transactional(rollbackFor = {Exception.class})
-  public CompletableFuture<Boolean> fetchData(List<String> poolIds) throws ApiException {
+  @SneakyThrows
+  public CompletableFuture<Boolean> fetchData(List<String> poolIds) {
     var curTime = System.currentTimeMillis();
 
     var dataFromKoios = getPoolInfoList(poolIds);

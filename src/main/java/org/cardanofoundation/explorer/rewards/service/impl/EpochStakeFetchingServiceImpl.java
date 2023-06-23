@@ -10,6 +10,7 @@ import java.util.stream.Stream;
 
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 
@@ -52,8 +53,8 @@ public class EpochStakeFetchingServiceImpl implements EpochStakeFetchingService 
   @Override
   @Transactional(rollbackFor = {Exception.class})
   @Async
-  public CompletableFuture<Boolean> fetchData(List<String> stakeAddressList)
-      throws ApiException {
+  @SneakyThrows
+  public CompletableFuture<Boolean> fetchData(List<String> stakeAddressList) {
     var curTime = System.currentTimeMillis();
     Integer currentEpoch = epochRepository.findMaxEpoch();
     List<AccountHistory> accountHistoryList = getAccountHistoryList(stakeAddressList);
