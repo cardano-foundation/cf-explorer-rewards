@@ -4,13 +4,14 @@ import org.cardanofoundation.explorer.consumercommon.entity.PoolHash;
 import org.cardanofoundation.explorer.consumercommon.entity.PoolHistory;
 import org.cardanofoundation.explorer.consumercommon.entity.PoolHistoryCheckpoint;
 import org.cardanofoundation.explorer.rewards.config.KoiosClient;
-import org.cardanofoundation.explorer.rewards.repository.EpochRepository;
 import org.cardanofoundation.explorer.rewards.repository.PoolHashRepository;
 import org.cardanofoundation.explorer.rewards.repository.PoolHistoryCheckpointRepository;
 import org.cardanofoundation.explorer.rewards.repository.jooq.JOOQPoolHistoryCheckpointRepository;
 import org.cardanofoundation.explorer.rewards.repository.jooq.JOOQPoolHistoryRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+
+import org.cardanofoundation.explorer.rewards.service.EpochService;
 import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -31,7 +32,7 @@ class PoolHistoryFetchingServiceImplTest {
   private KoiosClient koiosClient;
 
   @Mock
-  private EpochRepository epochRepository;
+  private EpochService epochService;
 
   @Mock
   private PoolHistoryCheckpointRepository poolHistoryCheckpointRepository;
@@ -60,8 +61,8 @@ class PoolHistoryFetchingServiceImplTest {
     String poolId = "pool10quq4wlghwrvmhdzc7geq22pyhzegccwj56ax2g8hx0cjfahufs";
     when(poolHashRepository.findByView(poolId)).thenReturn(
         Optional.of(PoolHash.builder().id(1L).view(poolId).build()));
-    when(epochRepository.findMaxEpoch()).thenReturn(416);
-    when(koiosClient.networkService().getChainTip().getValue().getEpochNo()).thenReturn(416);
+    when(epochService.getCurrentEpoch()).thenReturn(416);
+
     var poolHistory1 = new rest.koios.client.backend.api.pool.model.PoolHistory();
     poolHistory1.setEpochNo(415);
     poolHistory1.setPoolFees("59063025857");
@@ -116,8 +117,8 @@ class PoolHistoryFetchingServiceImplTest {
     String poolId = "pool10quq4wlghwrvmhdzc7geq22pyhzegccwj56ax2g8hx0cjfahufs";
     when(poolHashRepository.findByView(poolId)).thenReturn(
         Optional.of(PoolHash.builder().id(1L).view(poolId).build()));
-    when(epochRepository.findMaxEpoch()).thenReturn(416);
-    when(koiosClient.networkService().getChainTip().getValue().getEpochNo()).thenReturn(416);
+    when(epochService.getCurrentEpoch()).thenReturn(416);
+
     var poolHistory1 = new rest.koios.client.backend.api.pool.model.PoolHistory();
     poolHistory1.setEpochNo(415);
     poolHistory1.setPoolFees("59063025857");
@@ -166,8 +167,7 @@ class PoolHistoryFetchingServiceImplTest {
   void getPoolIdListNeedFetchData_ShouldReturnPoolIds() throws Exception {
     // Setup
     String poolId = "pool10quq4wlghwrvmhdzc7geq22pyhzegccwj56ax2g8hx0cjfahufs";
-    when(epochRepository.findMaxEpoch()).thenReturn(416);
-    when(koiosClient.networkService().getChainTip().getValue().getEpochNo()).thenReturn(416);
+    when(epochService.getCurrentEpoch()).thenReturn(416);
 
     final List<PoolHistoryCheckpoint> poolHistoryCheckpoints = List.of(
         PoolHistoryCheckpoint.builder().view(poolId).epochCheckpoint(415).isSpendableReward(true)
