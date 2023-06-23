@@ -6,6 +6,7 @@ import java.util.concurrent.CompletableFuture;
 
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 
@@ -25,10 +26,11 @@ public class PoolInfoConcurrentFetching {
 
   final PoolInfoFetchingService poolInfoFetchingService;
 
+  @Setter
   @Value("${application.pool-info.list-size-each-thread}")
   int subListSize;
 
-  public Boolean fetchDataConcurrently(List<String> poolIds) throws ApiException {
+  public Boolean fetchDataConcurrently(List<String> poolIds) {
     //TODO: validate poolIds list
     var curTime = System.currentTimeMillis();
 

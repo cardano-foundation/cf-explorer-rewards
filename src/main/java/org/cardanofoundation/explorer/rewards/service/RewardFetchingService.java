@@ -6,8 +6,7 @@ import java.util.concurrent.CompletableFuture;
 import rest.koios.client.backend.api.base.exception.ApiException;
 
 public interface RewardFetchingService {
-  CompletableFuture<Boolean> fetchData(List<String> stakeAddresses)
-      throws ApiException;
-  List<String> getStakeAddressListNeedFetchData(List<String> StakeAddressList);
+  CompletableFuture<Boolean> fetchData(List<String> stakeAddresses);
+  List<String> getStakeAddressListNeedFetchData(List<String> StakeAddressList) throws ApiException;
 
 }

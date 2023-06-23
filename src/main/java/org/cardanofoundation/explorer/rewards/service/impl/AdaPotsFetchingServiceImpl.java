@@ -1,19 +1,10 @@
 package org.cardanofoundation.explorer.rewards.service.impl;
 
-import java.math.BigInteger;
-import java.util.List;
-import java.util.concurrent.CompletableFuture;
-
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
-
-import org.springframework.context.annotation.Profile;
-import org.springframework.scheduling.annotation.Async;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import org.cardanofoundation.explorer.consumercommon.entity.AdaPots;
 import org.cardanofoundation.explorer.consumercommon.entity.Block;
 import org.cardanofoundation.explorer.rewards.config.KoiosClient;
@@ -21,8 +12,15 @@ import org.cardanofoundation.explorer.rewards.repository.AdaPotsRepository;
 import org.cardanofoundation.explorer.rewards.repository.BlockRepository;
 import org.cardanofoundation.explorer.rewards.repository.EpochRepository;
 import org.cardanofoundation.explorer.rewards.service.AdaPotsFetchingService;
-import rest.koios.client.backend.api.base.exception.ApiException;
+import org.springframework.context.annotation.Profile;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import rest.koios.client.backend.api.network.model.Totals;
+
+import java.math.BigInteger;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 @Service
 @FieldDefaults(level = AccessLevel.PRIVATE)
@@ -39,7 +37,8 @@ public class AdaPotsFetchingServiceImpl implements AdaPotsFetchingService {
   @Override
   @Transactional(rollbackFor = {Exception.class})
   @Async
-  public CompletableFuture<Boolean> fetchData(Integer epoch) throws ApiException {
+  @SneakyThrows
+  public CompletableFuture<Boolean> fetchData(Integer epoch) {
     var adaPotsKoios = koiosClient.networkService()
         .getHistoricalTokenomicStatsByEpoch(epoch)
         .getValue();

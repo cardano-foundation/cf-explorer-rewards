@@ -54,8 +54,8 @@ public class RewardFetchingServiceImpl implements RewardFetchingService {
   @Override
   @Async
   @Transactional(rollbackFor = {Exception.class})
-  public CompletableFuture<Boolean> fetchData(List<String> stakeAddressList)
-      throws ApiException {
+  @SneakyThrows
+  public CompletableFuture<Boolean> fetchData(List<String> stakeAddressList) {
     var curTime = System.currentTimeMillis();
     Integer currentEpoch = epochRepository.findMaxEpoch();
 
@@ -195,8 +195,7 @@ public class RewardFetchingServiceImpl implements RewardFetchingService {
    * @return
    */
   @Override
-  @SneakyThrows
-  public List<String> getStakeAddressListNeedFetchData(List<String> stakeAddressList) {
+  public List<String> getStakeAddressListNeedFetchData(List<String> stakeAddressList) throws ApiException{
     Integer currentEpoch = epochRepository.findMaxEpoch();
     int smallerCurrentEpoch = Math.min(currentEpoch, getCurrentEpochInKoios());
 

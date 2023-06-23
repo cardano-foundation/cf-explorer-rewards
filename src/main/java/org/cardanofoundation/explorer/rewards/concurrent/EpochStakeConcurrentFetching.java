@@ -6,6 +6,7 @@ import java.util.concurrent.CompletableFuture;
 
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 
@@ -25,10 +26,11 @@ public class EpochStakeConcurrentFetching {
 
   final EpochStakeFetchingService epochStakeFetchingService;
 
+  @Setter
   @Value("${application.epoch-stake.list-size-each-thread}")
   int subListSize;
 
-  public Boolean fetchDataConcurrently(List<String> stakeAddressList) throws ApiException {
+  public Boolean fetchDataConcurrently(List<String> stakeAddressList) {
     //TODO: validate stake address list
     var curTime = System.currentTimeMillis();
 
