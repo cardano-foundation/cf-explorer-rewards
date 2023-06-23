@@ -63,6 +63,7 @@ spring:
     default-schema: ${spring.jpa.properties.hibernate.default_schema}
     schemas: ${spring.jpa.properties.hibernate.default_schema}
     validate-on-migrate: ${FLYWAY_VALIDATE:false}
+    out-of-order: true
 application:
   network: ${NETWORK:mainnet}
   reward:
