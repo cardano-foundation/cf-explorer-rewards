@@ -6,6 +6,7 @@ import java.util.concurrent.CompletableFuture;
 
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 
@@ -25,21 +26,28 @@ public class RewardConcurrentFetching {
 
   final RewardFetchingService rewardFetchingService;
 
+  @Setter
   @Value("${application.reward.list-size-each-thread}")
   int subListSize;
 
-  public Boolean fetchDataConcurrently(List<String> stakeAddressList)
-      throws ApiException {
+  public Boolean fetchDataConcurrently(List<String> stakeAddressList) {
     //TODO: validate stake address list
     var curTime = System.currentTimeMillis();
 
     if (stakeAddressList.isEmpty()) {
       return Boolean.TRUE;
     }
-    // we only fetch data with addresses that are not in the checkpoint table
-    // or in the checkpoint table but have an epoch checkpoint value < (current epoch - 1)
-    List<String> stakeAddressListNeedFetchData = rewardFetchingService.getStakeAddressListNeedFetchData(
-        stakeAddressList);
+
+    List<String> stakeAddressListNeedFetchData;
+    try {
+      // we only fetch data with addresses that are not in the checkpoint table
+      // or in the checkpoint table but have an epoch checkpoint value < (current epoch - 1)
+      stakeAddressListNeedFetchData = rewardFetchingService.getStakeAddressListNeedFetchData(
+          stakeAddressList);
+    } catch (ApiException e) {
+      log.error("Exception occurs when calling getStakeAddressListNeedFetchData: {}", e.getMessage());
+      return Boolean.FALSE;
+    }
 
     if (stakeAddressListNeedFetchData.isEmpty()) {
       log.info(

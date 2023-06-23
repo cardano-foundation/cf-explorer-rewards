@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import org.cardanofoundation.explorer.rewards.concurrent.PoolInfoConcurrentFetching;
-import rest.koios.client.backend.api.base.exception.ApiException;
 
 @RestController
 @RequestMapping("/api/v1/pool-info")
@@ -23,7 +22,7 @@ public class PoolInfoController {
   private final PoolInfoConcurrentFetching poolInfoConcurrentFetching;
 
   @PostMapping("/fetch")
-  public Boolean fetchPoolInfoList(@RequestBody Set<String> poolIds) throws ApiException {
+  public Boolean fetchPoolInfoList(@RequestBody Set<String> poolIds) {
     return poolInfoConcurrentFetching.fetchDataConcurrently(new ArrayList<>(poolIds));
   }
 }

@@ -6,5 +6,5 @@ import java.util.concurrent.CompletableFuture;
 import rest.koios.client.backend.api.base.exception.ApiException;
 
 public interface PoolInfoFetchingService {
-  CompletableFuture<Boolean> fetchData(List<String> poolIds) throws ApiException;
+  CompletableFuture<Boolean> fetchData(List<String> poolIds);
 }
