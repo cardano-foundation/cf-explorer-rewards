@@ -4,7 +4,7 @@
 
   <groupId>org.cardanofoundation.explore</groupId>
   <artifactId>rewards</artifactId>
-  <version>0.1.2</version>
+  <version>0.1.3-SNAPSHOT</version>
   <name>cardano-explorer-rewards</name>
   <packaging>jar</packaging>
   <description>Explorer Reward.</description>
