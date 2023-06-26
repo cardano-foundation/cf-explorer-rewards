@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.1.2](https://github.com/cardano-foundation/cf-explorer-rewards/compare/v0.1.1...v0.1.2) (2023-06-26)
+
+
+### Features
+
+* [met-1036] add unit tests in service, controller layer ([f6af6fa](https://github.com/cardano-foundation/cf-explorer-rewards/commit/f6af6fa93fbbcfe26f570fae1a25979d8433be29))
+* MET-1321 ada-pots data fetching implement ([35d9980](https://github.com/cardano-foundation/cf-explorer-rewards/commit/35d9980abf60cda2e2196c2f701b2843b3d802e7))
+* replace-jdbc-with-jooq-in-repository-level ([a9218a9](https://github.com/cardano-foundation/cf-explorer-rewards/commit/a9218a9c9fbb7f95b1b41b1ff806ff4e03ef5747))
+
+
+### Bug Fixes
+
+* [met-1036] update data handler logic in pool history, pool info, reward and epoch stake ([99fbaa0](https://github.com/cardano-foundation/cf-explorer-rewards/commit/99fbaa0f303dd948934d9997f262e0216a2ac468))
+* **gha:** fix condition for main branch workflow trigger ([27fbf30](https://github.com/cardano-foundation/cf-explorer-rewards/commit/27fbf30bde35e5a3c7514fc95607dc91ba671339))
+* **gha:** fixed typo ([811d4b9](https://github.com/cardano-foundation/cf-explorer-rewards/commit/811d4b915f2e1562e1539fa2ad192ae99273c172))
+
 ## [0.1.1](https://github.com/cardano-foundation/cf-explorer-rewards/compare/v0.1.0...v0.1.1) (2023-06-12)
 
 
