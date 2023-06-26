@@ -3,7 +3,6 @@ package org.cardanofoundation.explorer.rewards.service.impl;
 import java.math.BigInteger;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -11,6 +10,7 @@ import java.util.stream.Stream;
 
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 
@@ -28,8 +28,8 @@ import org.cardanofoundation.explorer.rewards.repository.EpochRepository;
 import org.cardanofoundation.explorer.rewards.repository.EpochStakeCheckpointRepository;
 import org.cardanofoundation.explorer.rewards.repository.PoolHashRepository;
 import org.cardanofoundation.explorer.rewards.repository.StakeAddressRepository;
-import org.cardanofoundation.explorer.rewards.repository.jdbc.JDBCEpochStakeCheckpointRepository;
-import org.cardanofoundation.explorer.rewards.repository.jdbc.JDBCEpochStakeRepository;
+import org.cardanofoundation.explorer.rewards.repository.jooq.JOOQEpochStakeCheckpointRepository;
+import org.cardanofoundation.explorer.rewards.repository.jooq.JOOQEpochStakeRepository;
 import org.cardanofoundation.explorer.rewards.service.EpochStakeFetchingService;
 import rest.koios.client.backend.api.account.model.AccountHistory;
 import rest.koios.client.backend.api.account.model.AccountHistoryInner;
@@ -47,14 +47,14 @@ public class EpochStakeFetchingServiceImpl implements EpochStakeFetchingService 
   final PoolHashRepository poolHashRepository;
   final EpochStakeCheckpointRepository epochStakeCheckpointRepository;
   final EpochRepository epochRepository;
-  final JDBCEpochStakeRepository jdbcEpochStakeRepository;
-  final JDBCEpochStakeCheckpointRepository jdbcEpochStakeCheckpointRepository;
+  final JOOQEpochStakeRepository jooqEpochStakeRepository;
+  final JOOQEpochStakeCheckpointRepository jooqEpochStakeCheckpointRepository;
 
   @Override
   @Transactional(rollbackFor = {Exception.class})
   @Async
-  public CompletableFuture<Boolean> fetchData(List<String> stakeAddressList)
-      throws ApiException {
+  @SneakyThrows
+  public CompletableFuture<Boolean> fetchData(List<String> stakeAddressList) {
     var curTime = System.currentTimeMillis();
     Integer currentEpoch = epochRepository.findMaxEpoch();
     List<AccountHistory> accountHistoryList = getAccountHistoryList(stakeAddressList);
@@ -84,7 +84,7 @@ public class EpochStakeFetchingServiceImpl implements EpochStakeFetchingService 
           return accountHistory.getHistory().stream()
               .filter(accountHistoryInner ->
                   accountHistoryInner.getEpochNo() > epochStakeCheckpoint.getEpochCheckpoint()
-                      && !Objects.equals(accountHistoryInner.getEpochNo(), currentEpoch))
+                      && accountHistoryInner.getEpochNo() < currentEpoch + 2)
               .map(accountHistoryInner ->
                   EpochStake.builder()
                       .epochNo(accountHistoryInner.getEpochNo())
@@ -97,9 +97,9 @@ public class EpochStakeFetchingServiceImpl implements EpochStakeFetchingService 
 
     epochStakeCheckpointMap
         .values()
-        .forEach(epochCheckpoint -> epochCheckpoint.setEpochCheckpoint(currentEpoch - 1));
-    jdbcEpochStakeRepository.saveAll(saveData);
-    jdbcEpochStakeCheckpointRepository.saveAll(
+        .forEach(epochCheckpoint -> epochCheckpoint.setEpochCheckpoint(currentEpoch));
+    jooqEpochStakeRepository.saveAll(saveData);
+    jooqEpochStakeCheckpointRepository.saveAll(
         epochStakeCheckpointMap.values().stream().toList());
 
     return CompletableFuture.completedFuture(Boolean.TRUE);
@@ -165,7 +165,7 @@ public class EpochStakeFetchingServiceImpl implements EpochStakeFetchingService 
 
   /**
    * get stake address list that are not in the checkpoint table or in the checkpoint table but have
-   * an epoch checkpoint value < (current epoch - 1)
+   * an epoch checkpoint value < (current epoch)
    *
    * @param stakeAddressList
    * @return
@@ -182,7 +182,7 @@ public class EpochStakeFetchingServiceImpl implements EpochStakeFetchingService 
     return stakeAddressList.stream()
         .filter(stakeAddress ->
             ((!epochStakeCheckpointMap.containsKey(stakeAddress))
-                || epochStakeCheckpointMap.get(stakeAddress).getEpochCheckpoint() < currentEpoch - 1
+                || epochStakeCheckpointMap.get(stakeAddress).getEpochCheckpoint() < currentEpoch
             ))
         .collect(Collectors.toList());
   }

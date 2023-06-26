@@ -6,6 +6,7 @@ import java.util.concurrent.CompletableFuture;
 
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 
@@ -25,29 +26,23 @@ public class PoolInfoConcurrentFetching {
 
   final PoolInfoFetchingService poolInfoFetchingService;
 
+  @Setter
   @Value("${application.pool-info.list-size-each-thread}")
   int subListSize;
 
-  public Boolean fetchDataConcurrently(List<String> poolIds) throws ApiException {
+  public Boolean fetchDataConcurrently(List<String> poolIds) {
     //TODO: validate poolIds list
     var curTime = System.currentTimeMillis();
-    // we only fetch data with addresses that are not in the checkpoint table
-    // or in the checkpoint table but have an epoch checkpoint value < current epoch
-    List<String> poolIdListNeedFetchData = poolInfoFetchingService.getPoolIdListNeedFetchData(
-        poolIds);
 
-    if (poolIdListNeedFetchData.isEmpty()) {
-      log.info(
-          "PoolInfo: all pool id were in checkpoint and had epoch checkpoint = current epoch");
+    if (poolIds.isEmpty()) {
       return Boolean.TRUE;
     }
-
     // fetch and store data concurrently
     List<CompletableFuture<Boolean>> futures = new ArrayList<>();
 
-    for (int i = 0; i < poolIdListNeedFetchData.size(); i += subListSize) {
-      int endIndex = Math.min(i + subListSize, poolIdListNeedFetchData.size());
-      var sublist = poolIdListNeedFetchData.subList(i, endIndex);
+    for (int i = 0; i < poolIds.size(); i += subListSize) {
+      int endIndex = Math.min(i + subListSize, poolIds.size());
+      var sublist = poolIds.subList(i, endIndex);
 
       CompletableFuture<Boolean> future = poolInfoFetchingService.fetchData(sublist)
           .exceptionally(

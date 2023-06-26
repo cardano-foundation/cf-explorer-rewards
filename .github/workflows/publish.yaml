@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - develop
   pull_request:
     types: [ opened, synchronize ]
   workflow_dispatch:
@@ -57,12 +58,26 @@ jobs:
             echo "ARTIFACT_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)-PR${PR_NUMBER}" >> "$GITHUB_ENV"
             echo "DOCKER_LATEST_IMAGE_TAG=" >> "$GITHUB_ENV"
           else
+            # Make sure develop branch artifacts include SNAPSHOT
+            BRANCH=${GITHUB_REF##*/}
+            echo "BRANCH=${GITHUB_REF##*/}" >> "$GITHUB_OUTPUT"
+            CURRENT_VERSION=$(xq -r .project.version pom.xml)
+            if [[ "${BRANCH}" == "develop" ]] && [[ "${CURRENT_VERSION}" =~ .*-SNAPSHOT$ ]]
+            then
+              echo "DEVELOP_SNAPSHOT_OK=true" >> "$GITHUB_OUTPUT"
+            fi
+
             echo "ARTIFACT_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)" >> "$GITHUB_ENV"
             echo "DOCKER_LATEST_IMAGE_TAG=${{ env.PRIVATE_DOCKER_REGISTRY_URL }}/${DOCKER_IMAGE_NAME}:latest" >> "$GITHUB_ENV"
+
           fi
+
 
       - name: Docker Login
         uses: docker/login-action@v2
+        if: |
+          steps.metadata.outputs.BRANCH == 'main' ||
+          steps.metadata.outputs.DEVELOP_SNAPSHOT_OK == 'true'
         with:
           registry: ${{ env.PRIVATE_DOCKER_REGISTRY_URL }}
           username: ${{ env.PRIVATE_DOCKER_REGISTRY_USER }}
@@ -70,6 +85,9 @@ jobs:
 
       - name: Build and Push docker image
         uses: docker/build-push-action@v4
+        if: |
+          steps.metadata.outputs.BRANCH == 'main' ||
+          steps.metadata.outputs.DEVELOP_SNAPSHOT_OK == 'true'
         with:
           context: .
           push: true
