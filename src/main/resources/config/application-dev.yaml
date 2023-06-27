@@ -71,4 +71,6 @@ application:
     list-size-each-thread: ${EPOCH_STAKE_LIST_SIZE_EACH_THREAD:5}
   pool-info:
     list-size-each-thread: ${POOL_INFO_LIST_SIZE_EACH_THREAD:500}
-
+    job:
+      enable: ${POOL_INFO_DATA_JOB_ENABLED:true}
+      fixed-delay:  ${FETCH_AND_SAVE_POOL_INFO_DATA_DELAY:3600000}
