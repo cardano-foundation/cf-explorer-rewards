@@ -50,7 +50,7 @@ public class PoolInfoDataService {
         PoolHash::getView, Function.identity()));
 
     List<PoolInfo> poolInfoList = dataFromKoios.stream().map(poolInfo ->
-            PoolInfo.builder().pool(poolHashMap.get(poolInfo.getPoolIdBech32()))
+            PoolInfo.builder().poolId(poolHashMap.get(poolInfo.getPoolIdBech32()).getId())
                 .activeStake(StringUtils.isNotBlank(poolInfo.getActiveStake()) ? new BigInteger(
                     poolInfo.getActiveStake()) : null)
                 .fetchedAtEpoch(currentEpoch)
