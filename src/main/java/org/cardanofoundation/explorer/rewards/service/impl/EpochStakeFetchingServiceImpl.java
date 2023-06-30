@@ -24,12 +24,12 @@ import org.cardanofoundation.explorer.consumercommon.entity.EpochStakeCheckpoint
 import org.cardanofoundation.explorer.consumercommon.entity.PoolHash;
 import org.cardanofoundation.explorer.consumercommon.entity.StakeAddress;
 import org.cardanofoundation.explorer.rewards.config.KoiosClient;
-import org.cardanofoundation.explorer.rewards.repository.EpochRepository;
 import org.cardanofoundation.explorer.rewards.repository.EpochStakeCheckpointRepository;
 import org.cardanofoundation.explorer.rewards.repository.PoolHashRepository;
 import org.cardanofoundation.explorer.rewards.repository.StakeAddressRepository;
 import org.cardanofoundation.explorer.rewards.repository.jooq.JOOQEpochStakeCheckpointRepository;
 import org.cardanofoundation.explorer.rewards.repository.jooq.JOOQEpochStakeRepository;
+import org.cardanofoundation.explorer.rewards.service.EpochService;
 import org.cardanofoundation.explorer.rewards.service.EpochStakeFetchingService;
 import rest.koios.client.backend.api.account.model.AccountHistory;
 import rest.koios.client.backend.api.account.model.AccountHistoryInner;
@@ -46,9 +46,9 @@ public class EpochStakeFetchingServiceImpl implements EpochStakeFetchingService 
   final KoiosClient koiosClient;
   final PoolHashRepository poolHashRepository;
   final EpochStakeCheckpointRepository epochStakeCheckpointRepository;
-  final EpochRepository epochRepository;
   final JOOQEpochStakeRepository jooqEpochStakeRepository;
   final JOOQEpochStakeCheckpointRepository jooqEpochStakeCheckpointRepository;
+  final EpochService epochService;
 
   @Override
   @Transactional(rollbackFor = {Exception.class})
@@ -56,7 +56,7 @@ public class EpochStakeFetchingServiceImpl implements EpochStakeFetchingService 
   @SneakyThrows
   public CompletableFuture<Boolean> fetchData(List<String> stakeAddressList) {
     var curTime = System.currentTimeMillis();
-    Integer currentEpoch = epochRepository.findMaxEpoch();
+    int currentEpoch = epochService.getCurrentEpoch();
     List<AccountHistory> accountHistoryList = getAccountHistoryList(stakeAddressList);
 
     int epochStakeSize = accountHistoryList
@@ -171,8 +171,9 @@ public class EpochStakeFetchingServiceImpl implements EpochStakeFetchingService 
    * @return
    */
   @Override
-  public List<String> getStakeAddressListNeedFetchData(List<String> stakeAddressList) {
-    Integer currentEpoch = epochRepository.findMaxEpoch();
+  public List<String> getStakeAddressListNeedFetchData(List<String> stakeAddressList)
+      throws ApiException {
+    Integer currentEpoch = epochService.getCurrentEpoch();
 
     Map<String, EpochStakeCheckpoint> epochStakeCheckpointMap = epochStakeCheckpointRepository
         .findByStakeAddressIn(stakeAddressList)

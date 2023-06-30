@@ -1,51 +1,50 @@
-package org.cardanofoundation.explorer.rewards.service.impl;
-
-import org.cardanofoundation.explorer.consumercommon.entity.PoolHash;
-import org.cardanofoundation.explorer.consumercommon.entity.PoolInfo;
-import org.cardanofoundation.explorer.consumercommon.entity.PoolInfoCheckpoint;
-import org.cardanofoundation.explorer.rewards.config.KoiosClient;
-import org.cardanofoundation.explorer.rewards.repository.PoolHashRepository;
-import org.cardanofoundation.explorer.rewards.repository.jooq.JOOQPoolInfoCheckpointRepository;
-import org.cardanofoundation.explorer.rewards.repository.jooq.JOOQPoolInfoRepository;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-
-import org.cardanofoundation.explorer.rewards.service.EpochService;
-import org.mockito.*;
-import org.mockito.junit.jupiter.MockitoExtension;
+package org.cardanofoundation.explorer.rewards.schedule.service;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.cardanofoundation.explorer.consumercommon.entity.PoolHash;
+import org.cardanofoundation.explorer.consumercommon.entity.PoolInfo;
+import org.cardanofoundation.explorer.rewards.config.KoiosClient;
+import org.cardanofoundation.explorer.rewards.repository.PoolHashRepository;
+import org.cardanofoundation.explorer.rewards.repository.jooq.JOOQPoolInfoRepository;
+import org.cardanofoundation.explorer.rewards.service.EpochService;
+import org.mockito.Answers;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import rest.koios.client.backend.api.base.exception.ApiException;
+
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 @ExtendWith(MockitoExtension.class)
-class PoolInfoFetchingServiceImplTest {
+class PoolInfoDataServiceTest {
 
   @Mock(answer = Answers.RETURNS_DEEP_STUBS)
   private KoiosClient koiosClient;
   @Mock
-  private EpochService epochService;
+  private JOOQPoolInfoRepository jooqPoolInfoRepository;
   @Mock
   private PoolHashRepository poolHashRepository;
   @Mock
-  private JOOQPoolInfoRepository jooqPoolInfoRepository;
-  @Mock
-  private JOOQPoolInfoCheckpointRepository jooqPoolInfoCheckpointRepository;
+  private EpochService epochService;
   @InjectMocks
-  private PoolInfoFetchingServiceImpl poolInfoFetchingServiceImpl;
-
+  private PoolInfoDataService poolInfoDataService;
   @Captor
   ArgumentCaptor<List<PoolInfo>> poolInfoCaptor;
 
-  @Captor
-  ArgumentCaptor<List<PoolInfoCheckpoint>> checkpointCaptor;
-
   @Test
-  void fetchData_shouldFetchAndSavePoolInfoData() throws Exception {
+  void fetchData_whenFetchSuccessfully() throws Exception {
     // Setup
     List<String> poolIds = List.of("pool1chdvqec5lwsxuedrdhcdcxg2295tqrce9lcz3luru5fruzjf3wr",
         "pool155efqn9xpcf73pphkk88cmlkdwx4ulkg606tne970qswczg3asc");
@@ -62,9 +61,11 @@ class PoolInfoFetchingServiceImplTest {
     poolInfo2.setLiveStake("5722279429");
     poolInfo2.setLiveSaturation(0.01);
 
+    when(epochService.getCurrentEpoch()).thenReturn(416);
+
     when(koiosClient.poolService().getPoolInformation(poolIds, null).getValue()).thenReturn(
         List.of(poolInfo1, poolInfo2));
-    when(epochService.getCurrentEpoch()).thenReturn(416);
+
     when(poolHashRepository.findByViewIn(poolIds)).thenReturn(List.of(
         PoolHash.builder()
             .id(1L)
@@ -75,15 +76,27 @@ class PoolInfoFetchingServiceImplTest {
             .view("pool155efqn9xpcf73pphkk88cmlkdwx4ulkg606tne970qswczg3asc")
             .build()
     ));
+
     // Run the test
-    final CompletableFuture<Boolean> result = poolInfoFetchingServiceImpl.fetchData(
+    final CompletableFuture<Boolean> result = poolInfoDataService.fetchData(
         poolIds);
 
-    //verify
-    verify(jooqPoolInfoCheckpointRepository).saveAll(checkpointCaptor.capture());
+    // Verify
     verify(jooqPoolInfoRepository).saveAll(poolInfoCaptor.capture());
     assertEquals(2, poolInfoCaptor.getValue().size());
-    assertEquals(2, checkpointCaptor.getValue().size());
     assertTrue(result.get());
+  }
+
+  @Test
+  void fetchData_whenEpochServiceThrowsApiException() throws Exception {
+    // Setup
+    List<String> poolIds = List.of("pool1chdvqec5lwsxuedrdhcdcxg2295tqrce9lcz3luru5fruzjf3wr",
+        "pool155efqn9xpcf73pphkk88cmlkdwx4ulkg606tne970qswczg3asc");
+
+    when(epochService.getCurrentEpoch()).thenThrow(ApiException.class);
+
+    // Run the test
+    assertThatThrownBy(() -> poolInfoDataService.fetchData(poolIds))
+        .isInstanceOf(ApiException.class);
   }
 }
