@@ -4,7 +4,7 @@
 
   <groupId>org.cardanofoundation.explore</groupId>
   <artifactId>rewards</artifactId>
-  <version>0.1.2-SNAPSHOT</version>
+  <version>0.1.3-SNAPSHOT</version>
   <name>cardano-explorer-rewards</name>
   <packaging>jar</packaging>
   <description>Explorer Reward.</description>
@@ -222,6 +222,28 @@
           <groupId>org.sonarsource.scanner.maven</groupId>
           <artifactId>sonar-maven-plugin</artifactId>
           <version>${version.sonarcube-maven-plugin}</version>
+        </plugin>
+        <plugin>
+          <groupId>org.pitest</groupId>
+          <artifactId>pitest-maven</artifactId>
+          <configuration>
+            <features>
+              <feature>+auto_threads</feature>
+            </features>
+            <targetClasses>
+              <param>org.cardanofoundation.explorer.rewards.*</param>
+            </targetClasses>
+            <targetTests>
+              <param>org.cardanofoundation.explorer.rewards.*</param>
+            </targetTests>
+          </configuration>
+          <dependencies>
+            <dependency>
+              <groupId>org.pitest</groupId>
+              <artifactId>pitest-junit5-plugin</artifactId>
+              <version>1.1.1</version>
+            </dependency>
+          </dependencies>
         </plugin>
       </plugins>
     </pluginManagement>
