@@ -25,12 +25,12 @@ import org.cardanofoundation.explorer.consumercommon.entity.RewardCheckpoint;
 import org.cardanofoundation.explorer.consumercommon.entity.StakeAddress;
 import org.cardanofoundation.explorer.consumercommon.enumeration.RewardType;
 import org.cardanofoundation.explorer.rewards.config.KoiosClient;
-import org.cardanofoundation.explorer.rewards.repository.EpochRepository;
 import org.cardanofoundation.explorer.rewards.repository.PoolHashRepository;
 import org.cardanofoundation.explorer.rewards.repository.RewardCheckpointRepository;
 import org.cardanofoundation.explorer.rewards.repository.StakeAddressRepository;
 import org.cardanofoundation.explorer.rewards.repository.jooq.JOOQRewardCheckpointRepository;
 import org.cardanofoundation.explorer.rewards.repository.jooq.JOOQRewardRepository;
+import org.cardanofoundation.explorer.rewards.service.EpochService;
 import org.cardanofoundation.explorer.rewards.service.RewardFetchingService;
 import rest.koios.client.backend.api.account.model.AccountReward;
 import rest.koios.client.backend.api.account.model.AccountRewards;
@@ -47,9 +47,9 @@ public class RewardFetchingServiceImpl implements RewardFetchingService {
   final StakeAddressRepository stakeAddressRepository;
   final PoolHashRepository poolHashRepository;
   final RewardCheckpointRepository rewardCheckpointRepository;
-  final EpochRepository epochRepository;
   final JOOQRewardRepository jooqRewardRepository;
   final JOOQRewardCheckpointRepository jooqRewardCheckpointRepository;
+  final EpochService epochService;
 
   @Override
   @Async
@@ -57,7 +57,8 @@ public class RewardFetchingServiceImpl implements RewardFetchingService {
   @SneakyThrows
   public CompletableFuture<Boolean> fetchData(List<String> stakeAddressList) {
     var curTime = System.currentTimeMillis();
-    Integer currentEpoch = epochRepository.findMaxEpoch();
+
+    int currentEpoch = epochService.getCurrentEpoch();
 
     List<AccountRewards> accountRewardsList = getAccountRewards(stakeAddressList);
 
@@ -86,7 +87,10 @@ public class RewardFetchingServiceImpl implements RewardFetchingService {
 
       for (var accountReward : accountRewards.getRewards()) {
         // if earned epoch < epoch checkpoint, data was saved
-        if (accountReward.getEarnedEpoch() < rewardCheckpoint.getEpochCheckpoint()) {
+        // if earned epoch > current epoch (current epoch value in local < curren epoch value in koios),
+            // data should not be saved
+        if (accountReward.getEarnedEpoch() < rewardCheckpoint.getEpochCheckpoint()
+            || accountReward.getEarnedEpoch() > currentEpoch) {
           continue;
         }
 
@@ -103,11 +107,9 @@ public class RewardFetchingServiceImpl implements RewardFetchingService {
       }
     }
 
-    int smallerCurrentEpoch = Math.min(currentEpoch, getCurrentEpochInKoios());
-
     rewardCheckpointMap
         .values()
-        .forEach(rewardCheckpoint -> rewardCheckpoint.setEpochCheckpoint(smallerCurrentEpoch - 1));
+        .forEach(rewardCheckpoint -> rewardCheckpoint.setEpochCheckpoint(currentEpoch - 1));
 
     jooqRewardRepository.saveAll(result);
     jooqRewardCheckpointRepository.saveAll(rewardCheckpointMap.values().stream().toList());
@@ -150,17 +152,6 @@ public class RewardFetchingServiceImpl implements RewardFetchingService {
         .getValue();
   }
 
-  /**
-   * fetch current epoch in Koios
-   * @return
-   * @throws ApiException
-   */
-  private Integer getCurrentEpochInKoios() throws ApiException {
-    var tip = koiosClient.networkService().getChainTip().getValue();
-
-    return tip.getEpochNo();
-  }
-
   private Map<String, RewardCheckpoint> getRewardCheckpointMap(List<String> stakeAddressList) {
     // get rewardCheckpointMap with stakeAddressList
     Map<String, RewardCheckpoint> rewardCheckpointMap = rewardCheckpointRepository
@@ -196,8 +187,7 @@ public class RewardFetchingServiceImpl implements RewardFetchingService {
    */
   @Override
   public List<String> getStakeAddressListNeedFetchData(List<String> stakeAddressList) throws ApiException{
-    Integer currentEpoch = epochRepository.findMaxEpoch();
-    int smallerCurrentEpoch = Math.min(currentEpoch, getCurrentEpochInKoios());
+    int currentEpoch = epochService.getCurrentEpoch();
 
     Map<String, RewardCheckpoint> rewardCheckpointMap = rewardCheckpointRepository
         .findByStakeAddressIn(stakeAddressList)
@@ -207,7 +197,7 @@ public class RewardFetchingServiceImpl implements RewardFetchingService {
     return stakeAddressList.stream()
         .filter(stakeAddress -> (
             (!rewardCheckpointMap.containsKey(stakeAddress))
-                || rewardCheckpointMap.get(stakeAddress).getEpochCheckpoint() < smallerCurrentEpoch - 1
+                || rewardCheckpointMap.get(stakeAddress).getEpochCheckpoint() < currentEpoch - 1
         ))
         .collect(Collectors.toList());
   }

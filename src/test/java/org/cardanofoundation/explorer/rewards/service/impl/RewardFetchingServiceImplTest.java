@@ -5,7 +5,6 @@ import org.cardanofoundation.explorer.consumercommon.entity.Reward;
 import org.cardanofoundation.explorer.consumercommon.entity.RewardCheckpoint;
 import org.cardanofoundation.explorer.consumercommon.entity.StakeAddress;
 import org.cardanofoundation.explorer.rewards.config.KoiosClient;
-import org.cardanofoundation.explorer.rewards.repository.EpochRepository;
 import org.cardanofoundation.explorer.rewards.repository.PoolHashRepository;
 import org.cardanofoundation.explorer.rewards.repository.RewardCheckpointRepository;
 import org.cardanofoundation.explorer.rewards.repository.StakeAddressRepository;
@@ -14,6 +13,8 @@ import org.cardanofoundation.explorer.rewards.repository.jooq.JOOQRewardReposito
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+
+import org.cardanofoundation.explorer.rewards.service.EpochService;
 import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
 import rest.koios.client.backend.api.account.model.AccountReward;
@@ -45,7 +46,7 @@ class RewardFetchingServiceImplTest {
   private RewardCheckpointRepository rewardCheckpointRepository;
 
   @Mock
-  private EpochRepository epochRepository;
+  private EpochService epochService;
 
   @Mock
   private JOOQRewardRepository jooqRewardRepository;
@@ -137,8 +138,7 @@ class RewardFetchingServiceImplTest {
                 .stakeAddress("stake1u9nzg3s4wvstx0czh2asmeknfl80tn7z8nhm03smzunflas3m8ptg")
                 .epochCheckpoint(413).build()));
 
-    when(epochRepository.findMaxEpoch()).thenReturn(416);
-    when(koiosClient.networkService().getChainTip().getValue().getEpochNo()).thenReturn(416);
+    when(epochService.getCurrentEpoch()).thenReturn(416);
 
     // Run the test
     CompletableFuture<Boolean> result = rewardFetchingServiceImpl.fetchData(stakeAddressList);
@@ -161,8 +161,8 @@ class RewardFetchingServiceImplTest {
             .stakeAddress("stake1u9nzg3s4wvstx0czh2asmeknfl80tn7z8nhm03smzunflas3m8ptg")
             .epochCheckpoint(414).build());
     when(rewardCheckpointRepository.findByStakeAddressIn(any())).thenReturn(checkpoints);
-    when(epochRepository.findMaxEpoch()).thenReturn(416);
-    when(koiosClient.networkService().getChainTip().getValue().getEpochNo()).thenReturn(415);
+    when(epochService.getCurrentEpoch()).thenReturn(415);
+
     // Run the test
     List<String> result = rewardFetchingServiceImpl.getStakeAddressListNeedFetchData(
         stakeAddressList);

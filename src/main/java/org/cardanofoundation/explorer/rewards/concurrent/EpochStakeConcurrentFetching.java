@@ -37,10 +37,17 @@ public class EpochStakeConcurrentFetching {
     if (stakeAddressList.isEmpty()) {
       return Boolean.TRUE;
     }
-    // we only fetch data with addresses that are not in the checkpoint table
-    // or in the checkpoint table but have an epoch checkpoint value < (current epoch)
-    List<String> stakeAddressListNeedFetchData = epochStakeFetchingService.getStakeAddressListNeedFetchData(
-        stakeAddressList);
+
+    List<String> stakeAddressListNeedFetchData;
+    try {
+      // we only fetch data with addresses that are not in the checkpoint table
+      // or in the checkpoint table but have an epoch checkpoint value < (current epoch)
+      stakeAddressListNeedFetchData = epochStakeFetchingService.getStakeAddressListNeedFetchData(
+          stakeAddressList);
+    } catch (ApiException e) {
+      log.error("Exception occurs when calling getStakeAddressListNeedFetchData: {}", e.getMessage());
+      return Boolean.FALSE;
+    }
 
     if (stakeAddressListNeedFetchData.isEmpty()) {
       log.info(

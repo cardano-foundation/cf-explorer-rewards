@@ -22,10 +22,10 @@ import org.cardanofoundation.explorer.consumercommon.entity.PoolHash;
 import org.cardanofoundation.explorer.consumercommon.entity.PoolInfo;
 import org.cardanofoundation.explorer.consumercommon.entity.PoolInfoCheckpoint;
 import org.cardanofoundation.explorer.rewards.config.KoiosClient;
-import org.cardanofoundation.explorer.rewards.repository.EpochRepository;
 import org.cardanofoundation.explorer.rewards.repository.jooq.JOOQPoolInfoCheckpointRepository;
 import org.cardanofoundation.explorer.rewards.repository.jooq.JOOQPoolInfoRepository;
 import org.cardanofoundation.explorer.rewards.repository.PoolHashRepository;
+import org.cardanofoundation.explorer.rewards.service.EpochService;
 import org.cardanofoundation.explorer.rewards.service.PoolInfoFetchingService;
 import rest.koios.client.backend.api.base.exception.ApiException;
 
@@ -37,10 +37,10 @@ import rest.koios.client.backend.api.base.exception.ApiException;
 public class PoolInfoFetchingServiceImpl implements PoolInfoFetchingService {
 
   final KoiosClient koiosClient;
-  final EpochRepository epochRepository;
   final JOOQPoolInfoRepository jooqPoolInfoRepository;
   final JOOQPoolInfoCheckpointRepository jooqPoolInfoCheckpointRepository;
   final PoolHashRepository poolHashRepository;
+  final EpochService epochService;
 
   @Override
   @Async
@@ -51,8 +51,8 @@ public class PoolInfoFetchingServiceImpl implements PoolInfoFetchingService {
 
     var dataFromKoios = getPoolInfoList(poolIds);
 
-    Integer currentEpoch = epochRepository.findMaxEpoch();
-    int smallerCurrentEpoch = Math.min(currentEpoch, getCurrentEpochInKoios());
+    int currentEpoch = epochService.getCurrentEpoch();
+
     var poolHashMap = poolHashRepository.findByViewIn(poolIds).stream().collect(Collectors.toMap(
         PoolHash::getView, Function.identity()));
 
@@ -64,7 +64,7 @@ public class PoolInfoFetchingServiceImpl implements PoolInfoFetchingService {
             PoolInfo.builder().poolId(poolHashMap.get(poolInfo.getPoolIdBech32()).getId())
                 .activeStake(StringUtils.isNotBlank(poolInfo.getActiveStake()) ? new BigInteger(
                     poolInfo.getActiveStake()) : null)
-                .fetchedAtEpoch(smallerCurrentEpoch)
+                .fetchedAtEpoch(currentEpoch)
                 .liveStake(StringUtils.isNotBlank(poolInfo.getLiveStake()) ? new BigInteger(
                     poolInfo.getLiveStake()) : null)
                 .liveSaturation(poolInfo.getLiveSaturation()).build())
@@ -75,7 +75,7 @@ public class PoolInfoFetchingServiceImpl implements PoolInfoFetchingService {
 
     List<PoolInfoCheckpoint> poolInfoCheckpointList = poolIds.stream()
         .map(poolId -> PoolInfoCheckpoint.builder()
-            .view(poolId).epochCheckpoint(smallerCurrentEpoch).build())
+            .view(poolId).epochCheckpoint(currentEpoch).build())
         .collect(Collectors.toList());
 
     jooqPoolInfoCheckpointRepository.saveAll(poolInfoCheckpointList);
@@ -97,18 +97,6 @@ public class PoolInfoFetchingServiceImpl implements PoolInfoFetchingService {
     return koiosClient.poolService()
         .getPoolInformation(poolIdList, null)
         .getValue();
-  }
-
-  /**
-   * fetch current epoch in Koios
-   *
-   * @return
-   * @throws ApiException
-   */
-  private Integer getCurrentEpochInKoios() throws ApiException {
-    var tip = koiosClient.networkService().getChainTip().getValue();
-
-    return tip.getEpochNo();
   }
 
 }

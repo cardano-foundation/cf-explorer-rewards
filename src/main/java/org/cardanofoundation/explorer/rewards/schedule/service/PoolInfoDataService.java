@@ -21,9 +21,9 @@ import io.micrometer.common.util.StringUtils;
 import org.cardanofoundation.explorer.consumercommon.entity.PoolHash;
 import org.cardanofoundation.explorer.consumercommon.entity.PoolInfo;
 import org.cardanofoundation.explorer.rewards.config.KoiosClient;
-import org.cardanofoundation.explorer.rewards.repository.EpochRepository;
 import org.cardanofoundation.explorer.rewards.repository.PoolHashRepository;
 import org.cardanofoundation.explorer.rewards.repository.jooq.JOOQPoolInfoRepository;
+import org.cardanofoundation.explorer.rewards.service.EpochService;
 import rest.koios.client.backend.api.base.exception.ApiException;
 
 @Service
@@ -35,7 +35,7 @@ public class PoolInfoDataService {
   final KoiosClient koiosClient;
   final JOOQPoolInfoRepository jooqPoolInfoRepository;
   final PoolHashRepository poolHashRepository;
-  final EpochRepository epochRepository;
+  final EpochService epochService;
 
   @Transactional
   @Retryable(retryFor = {Exception.class}, maxAttempts = 3)
@@ -43,7 +43,7 @@ public class PoolInfoDataService {
   @Async
   public CompletableFuture<Boolean> fetchData(List<String> poolIds) {
     var curTime = System.currentTimeMillis();
-    int currentEpoch = Math.min(epochRepository.findMaxEpoch(), getCurrentEpochInKoios());
+    int currentEpoch = epochService.getCurrentEpoch();
     var dataFromKoios = getPoolInfoList(poolIds);
 
     var poolHashMap = poolHashRepository.findByViewIn(poolIds).stream().collect(Collectors.toMap(
@@ -51,9 +51,9 @@ public class PoolInfoDataService {
 
     List<PoolInfo> poolInfoList = dataFromKoios.stream().map(poolInfo ->
             PoolInfo.builder().poolId(poolHashMap.get(poolInfo.getPoolIdBech32()).getId())
+                .fetchedAtEpoch(currentEpoch)
                 .activeStake(StringUtils.isNotBlank(poolInfo.getActiveStake()) ? new BigInteger(
                     poolInfo.getActiveStake()) : null)
-                .fetchedAtEpoch(currentEpoch)
                 .liveStake(StringUtils.isNotBlank(poolInfo.getLiveStake()) ? new BigInteger(
                     poolInfo.getLiveStake()) : null)
                 .liveSaturation(poolInfo.getLiveSaturation()).build())
@@ -81,15 +81,4 @@ public class PoolInfoDataService {
         .getValue();
   }
 
-  /**
-   * fetch current epoch in Koios
-   *
-   * @return
-   * @throws ApiException
-   */
-  private Integer getCurrentEpochInKoios() throws ApiException {
-    var tip = koiosClient.networkService().getChainTip().getValue();
-
-    return tip.getEpochNo();
-  }
 }
