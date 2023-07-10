@@ -15,6 +15,7 @@ import org.jooq.Query;
 
 import org.cardanofoundation.explorer.consumercommon.entity.Reward;
 
+import static org.jooq.impl.DSL.coalesce;
 import static org.jooq.impl.DSL.field;
 import static org.jooq.impl.DSL.table;
 
@@ -62,7 +63,7 @@ public class JOOQRewardRepository {
                   field(addressIdField),
                   field(typeField),
                   field(earnedEpochField),
-                  field(poolIdField)
+                  poolId == null ? coalesce(field(poolIdField), -1) : field(poolIdField)
               )
               .doNothing();
 
