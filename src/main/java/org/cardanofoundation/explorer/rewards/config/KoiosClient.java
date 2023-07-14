@@ -21,6 +21,12 @@ public class KoiosClient {
   @Value("${application.network}")
   private String value;
 
+  @Value("${application.koios-base-url-enabled}")
+  private Boolean baseUrlEnabled;
+
+  @Value("${application.koios-base-url}")
+  private String baseUrl;
+
   private BackendService backendService;
 
   public AccountService accountService() {
@@ -41,12 +47,16 @@ public class KoiosClient {
 
   @PostConstruct
   void setBackendService() {
-    this.backendService = switch (value) {
-      case NetworkConstants.MAINNET -> BackendFactory.getKoiosMainnetService();
-      case NetworkConstants.PREPROD -> BackendFactory.getKoiosPreprodService();
-      case NetworkConstants.PREVIEW -> BackendFactory.getKoiosPreviewService();
-      case NetworkConstants.GUILDNET -> BackendFactory.getKoiosGuildService();
-      default -> throw new IllegalStateException("Unexpected value: " + value);
-    };
+    if(Boolean.TRUE.equals(baseUrlEnabled)) {
+      this.backendService = BackendFactory.getCustomRPCService(baseUrl);
+    } else{
+      this.backendService = switch (value) {
+        case NetworkConstants.MAINNET -> BackendFactory.getKoiosMainnetService();
+        case NetworkConstants.PREPROD -> BackendFactory.getKoiosPreprodService();
+        case NetworkConstants.PREVIEW -> BackendFactory.getKoiosPreviewService();
+        case NetworkConstants.GUILDNET -> BackendFactory.getKoiosGuildService();
+        default -> throw new IllegalStateException("Unexpected value: " + value);
+      };
+    }
   }
 }

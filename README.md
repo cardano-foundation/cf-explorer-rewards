@@ -22,3 +22,5 @@
 - FETCH_AND_SAVE_POOL_INFO_DATA_DELAY: the interval between each run of the job to fetch pool info data
 - FLYWAY_ENABLE: whether to enable flyway
 - FLYWAY_VALIDATE: whether to automatically call validate when performing a migration
+- KOIOS_BASE_URL_ENABLED: Set `true` to enable to use your Koios instance base URL, otherwise set `false`
+- KOIOS_BASE_URL: Koios instance base URL.
