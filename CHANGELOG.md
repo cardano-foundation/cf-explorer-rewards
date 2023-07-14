@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.1.3](https://github.com/cardano-foundation/cf-explorer-rewards/compare/v0.1.2...v0.1.3) (2023-07-14)
+
+
+### Features
+
+* add pool info data job ([3771c9f](https://github.com/cardano-foundation/cf-explorer-rewards/commit/3771c9ff424777bd0cd87326d12f9fe66989da4b))
+* add pool info data job ([cd21869](https://github.com/cardano-foundation/cf-explorer-rewards/commit/cd2186970d221f5a4e09a9e2396cf0eeebf4fb90))
+* MET-1462 koios base-url config ([c1683a2](https://github.com/cardano-foundation/cf-explorer-rewards/commit/c1683a2cda9675e3f21e540c5c59a4319cbfecab))
+
+
+### Bug Fixes
+
+* [met-1036] handle current epoch value and update unit tests ([b249ce3](https://github.com/cardano-foundation/cf-explorer-rewards/commit/b249ce31b73db4dec47cc4d12370b08c8dfc54eb))
+* **gha:** fixed PR builds ([5da6732](https://github.com/cardano-foundation/cf-explorer-rewards/commit/5da67329cd08aebceee1040d335d2d4df910fd5f))
+* **gha:** fixed PR builds ([bf2f04e](https://github.com/cardano-foundation/cf-explorer-rewards/commit/bf2f04e07597b464801879c7ab105b13b093ca44))
+
 ## [0.1.2](https://github.com/cardano-foundation/cf-explorer-rewards/compare/v0.1.1...v0.1.2) (2023-06-26)
 
 
