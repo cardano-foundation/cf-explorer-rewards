@@ -67,6 +67,8 @@ spring:
 
 application:
   network: ${NETWORK:mainnet}
+  koios-base-url-enabled: ${KOIOS_BASE_URL_ENABLED:false}
+  koios-base-url: ${KOIOS_BASE_URL:https://api.koios.rest/api/v0/}
   reward:
     list-size-each-thread: ${LIST_SIZE_EACH_THREAD:5}
   epoch-stake:
