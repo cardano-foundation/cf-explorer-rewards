@@ -34,6 +34,20 @@ class EpochStakeConcurrentFetchingTest {
     assertTrue(result);
   }
 
+  @Test
+  void fetchDataConcurrently_ApiExceptionOccurs_ReturnsFalse()
+      throws Exception {
+    List<String> stakeAddressList = List.of(
+        "stake1uyrx65wjqjgeeksd8hptmcgl5jfyrqkfq0xe8xlp367kphsckq250",
+        "stake1uxpdrerp9wrxunfh6ukyv5267j70fzxgw0fr3z8zeac5vyqhf9jhy");
+
+    when(epochStakeFetchingService.getStakeAddressListNeedFetchData(stakeAddressList))
+        .thenThrow(ApiException.class);
+
+    boolean result = epochStakeConcurrentFetching.fetchDataConcurrently(stakeAddressList);
+
+    assertFalse(result);
+  }
 
   @Test
   void fetchDataConcurrently_FetchDataSuccessfully_ReturnsTrue() throws Exception {
@@ -59,7 +73,8 @@ class EpochStakeConcurrentFetchingTest {
   }
 
   @Test
-  void fetchDataConcurrently_StakeAddressListNeedFetchDataIsEmpty_ReturnsTrue() {
+  void fetchDataConcurrently_StakeAddressListNeedFetchDataIsEmpty_ReturnsTrue()
+      throws Exception {
     List<String> stakeAddressList = List.of(
         "stake1uyrx65wjqjgeeksd8hptmcgl5jfyrqkfq0xe8xlp367kphsckq250",
         "stake1uxpdrerp9wrxunfh6ukyv5267j70fzxgw0fr3z8zeac5vyqhf9jhy");
@@ -73,7 +88,7 @@ class EpochStakeConcurrentFetchingTest {
   }
 
   @Test
-  void fetchDataConcurrently_FetchDataFailed_ReturnsFalse() {
+  void fetchDataConcurrently_FetchDataFailed_ReturnsFalse() throws Exception {
     // Setup
     List<String> stakeAddressList = List.of(
         "stake1uyrx65wjqjgeeksd8hptmcgl5jfyrqkfq0xe8xlp367kphsckq250",

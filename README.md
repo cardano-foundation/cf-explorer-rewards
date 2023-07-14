@@ -34,5 +34,9 @@ To ensure the stability and reliability of this project, unit and mutation tests
 - REWARD_LIST_SIZE_EACH_THREAD: batch size to fetch reward data each thread
 - EPOCH_STAKE_LIST_SIZE_EACH_THREAD: batch size to fetch epoch stake data each thread
 - POOL_INFO_LIST_SIZE_EACH_THREAD: batch size to fetch pool info data each thread
+- POOL_INFO_DATA_JOB_ENABLED: whether enable fetching pool info data job
+- FETCH_AND_SAVE_POOL_INFO_DATA_DELAY: the interval between each run of the job to fetch pool info data
 - FLYWAY_ENABLE: whether to enable flyway
 - FLYWAY_VALIDATE: whether to automatically call validate when performing a migration
+- KOIOS_BASE_URL_ENABLED: Set `true` to enable to use your Koios instance base URL, otherwise set `false`
+- KOIOS_BASE_URL: Koios instance base URL.

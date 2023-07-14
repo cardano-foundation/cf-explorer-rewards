@@ -1,4 +1,4 @@
-package org.cardanofoundation.explorer.rewards.service.impl;
+package org.cardanofoundation.explorer.rewards.schedule.service;
 
 import java.math.BigInteger;
 import java.util.List;
@@ -12,7 +12,7 @@ import lombok.SneakyThrows;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 
-import org.springframework.context.annotation.Profile;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,51 +20,40 @@ import org.springframework.transaction.annotation.Transactional;
 import io.micrometer.common.util.StringUtils;
 import org.cardanofoundation.explorer.consumercommon.entity.PoolHash;
 import org.cardanofoundation.explorer.consumercommon.entity.PoolInfo;
-import org.cardanofoundation.explorer.consumercommon.entity.PoolInfoCheckpoint;
 import org.cardanofoundation.explorer.rewards.config.KoiosClient;
-import org.cardanofoundation.explorer.rewards.repository.jooq.JOOQPoolInfoCheckpointRepository;
-import org.cardanofoundation.explorer.rewards.repository.jooq.JOOQPoolInfoRepository;
 import org.cardanofoundation.explorer.rewards.repository.PoolHashRepository;
+import org.cardanofoundation.explorer.rewards.repository.jooq.JOOQPoolInfoRepository;
 import org.cardanofoundation.explorer.rewards.service.EpochService;
-import org.cardanofoundation.explorer.rewards.service.PoolInfoFetchingService;
 import rest.koios.client.backend.api.base.exception.ApiException;
 
 @Service
-@FieldDefaults(level = AccessLevel.PRIVATE)
 @RequiredArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE)
 @Slf4j
-@Profile("koios")
-public class PoolInfoFetchingServiceImpl implements PoolInfoFetchingService {
+public class PoolInfoDataService {
 
   final KoiosClient koiosClient;
   final JOOQPoolInfoRepository jooqPoolInfoRepository;
-  final JOOQPoolInfoCheckpointRepository jooqPoolInfoCheckpointRepository;
   final PoolHashRepository poolHashRepository;
   final EpochService epochService;
 
-  @Override
-  @Async
-  @Transactional(rollbackFor = {Exception.class})
+  @Transactional
+  @Retryable(retryFor = {Exception.class}, maxAttempts = 3)
   @SneakyThrows
+  @Async
   public CompletableFuture<Boolean> fetchData(List<String> poolIds) {
     var curTime = System.currentTimeMillis();
-
-    var dataFromKoios = getPoolInfoList(poolIds);
-
     int currentEpoch = epochService.getCurrentEpoch();
+    var dataFromKoios = getPoolInfoList(poolIds);
 
     var poolHashMap = poolHashRepository.findByViewIn(poolIds).stream().collect(Collectors.toMap(
         PoolHash::getView, Function.identity()));
 
-    if (poolHashMap.size() != poolIds.size()) {
-      return CompletableFuture.completedFuture(Boolean.FALSE);
-    }
-
     List<PoolInfo> poolInfoList = dataFromKoios.stream().map(poolInfo ->
             PoolInfo.builder().poolId(poolHashMap.get(poolInfo.getPoolIdBech32()).getId())
+                .fetchedAtEpoch(currentEpoch)
                 .activeStake(StringUtils.isNotBlank(poolInfo.getActiveStake()) ? new BigInteger(
                     poolInfo.getActiveStake()) : null)
-                .fetchedAtEpoch(currentEpoch)
                 .liveStake(StringUtils.isNotBlank(poolInfo.getLiveStake()) ? new BigInteger(
                     poolInfo.getLiveStake()) : null)
                 .liveSaturation(poolInfo.getLiveSaturation()).build())
@@ -73,14 +62,7 @@ public class PoolInfoFetchingServiceImpl implements PoolInfoFetchingService {
     log.info("fetch {} pool_info by koios api: {} ms, with poolIds input size {}",
         poolInfoList.size(), System.currentTimeMillis() - curTime, poolIds.size());
 
-    List<PoolInfoCheckpoint> poolInfoCheckpointList = poolIds.stream()
-        .map(poolId -> PoolInfoCheckpoint.builder()
-            .view(poolId).epochCheckpoint(currentEpoch).build())
-        .collect(Collectors.toList());
-
-    jooqPoolInfoCheckpointRepository.saveAll(poolInfoCheckpointList);
     jooqPoolInfoRepository.saveAll(poolInfoList);
-
     return CompletableFuture.completedFuture(Boolean.TRUE);
   }
 

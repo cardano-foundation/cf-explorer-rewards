@@ -22,12 +22,12 @@ import io.micrometer.common.util.StringUtils;
 import org.cardanofoundation.explorer.consumercommon.entity.PoolHistory;
 import org.cardanofoundation.explorer.consumercommon.entity.PoolHistoryCheckpoint;
 import org.cardanofoundation.explorer.rewards.config.KoiosClient;
-import org.cardanofoundation.explorer.rewards.repository.EpochRepository;
 import org.cardanofoundation.explorer.rewards.repository.PoolHashRepository;
 import org.cardanofoundation.explorer.rewards.repository.PoolHistoryCheckpointRepository;
-import org.cardanofoundation.explorer.rewards.service.PoolHistoryFetchingService;
 import org.cardanofoundation.explorer.rewards.repository.jooq.JOOQPoolHistoryCheckpointRepository;
 import org.cardanofoundation.explorer.rewards.repository.jooq.JOOQPoolHistoryRepository;
+import org.cardanofoundation.explorer.rewards.service.EpochService;
+import org.cardanofoundation.explorer.rewards.service.PoolHistoryFetchingService;
 import rest.koios.client.backend.api.base.exception.ApiException;
 
 @Service
@@ -38,11 +38,11 @@ import rest.koios.client.backend.api.base.exception.ApiException;
 public class PoolHistoryFetchingServiceImpl implements PoolHistoryFetchingService {
 
   final KoiosClient koiosClient;
-  final EpochRepository epochRepository;
   final PoolHistoryCheckpointRepository poolHistoryCheckpointRepository;
   final JOOQPoolHistoryRepository jooqPoolHistoryRepository;
   final JOOQPoolHistoryCheckpointRepository jooqPoolHistoryCheckpointRepository;
   final PoolHashRepository poolHashRepository;
+  final EpochService epochService;
 
   @Override
   @Async
@@ -54,37 +54,38 @@ public class PoolHistoryFetchingServiceImpl implements PoolHistoryFetchingServic
       return CompletableFuture.completedFuture(Boolean.FALSE);
     }
 
-    var currentEpoch = epochRepository.findMaxEpoch();
-    int smallerCurrentEpoch = Math.min(currentEpoch, getCurrentEpochInKoios());
+    int currentEpoch = epochService.getCurrentEpoch();
 
     var dataFromKoios = getPoolHistoryList(poolId);
     var poolHistoryCheckpoint = poolHistoryCheckpointRepository.findByView(poolId);
 
     Map<Integer, PoolHistory> poolHistoryList =
-        dataFromKoios.stream().map(poolHistory ->
-            PoolHistory.builder()
-                .epochNo(poolHistory.getEpochNo())
-                .activeStake(StringUtils.isNotBlank(poolHistory.getActiveStake()) ? new BigInteger(
-                    poolHistory.getActiveStake()) : null)
-                .activeStakePct(poolHistory.getActiveStakePct())
-                .blockCnt(poolHistory.getBlockCnt())
-                .poolFees(StringUtils.isNotBlank(poolHistory.getPoolFees()) ? new BigInteger(
-                    poolHistory.getPoolFees()) : null)
-                .delegatorCnt(poolHistory.getDelegatorCnt())
-                .delegatorRewards(
-                    StringUtils.isNotBlank(poolHistory.getDelegRewards()) ? new BigInteger(
-                        poolHistory.getDelegRewards()) : null)
-                .epochRos(poolHistory.getEpochRos())
-                .fixedCost(StringUtils.isNotBlank(poolHistory.getFixedCost()) ? new BigInteger(
-                    poolHistory.getFixedCost()) : null)
-                .margin(poolHistory.getMargin())
-                .saturationPct(poolHistory.getSaturationPct())
-                .poolId(poolHash.get().getId())
-                .build()
-        ).collect(
-            Collectors.toMap(PoolHistory::getEpochNo, Function.identity()));
+        dataFromKoios.stream().filter(poolHistory -> poolHistory.getEpochNo() < currentEpoch)
+            .map(poolHistory ->
+                PoolHistory.builder()
+                    .epochNo(poolHistory.getEpochNo())
+                    .activeStake(
+                        StringUtils.isNotBlank(poolHistory.getActiveStake()) ? new BigInteger(
+                            poolHistory.getActiveStake()) : null)
+                    .activeStakePct(poolHistory.getActiveStakePct())
+                    .blockCnt(poolHistory.getBlockCnt())
+                    .poolFees(StringUtils.isNotBlank(poolHistory.getPoolFees()) ? new BigInteger(
+                        poolHistory.getPoolFees()) : null)
+                    .delegatorCnt(poolHistory.getDelegatorCnt())
+                    .delegatorRewards(
+                        StringUtils.isNotBlank(poolHistory.getDelegRewards()) ? new BigInteger(
+                            poolHistory.getDelegRewards()) : null)
+                    .epochRos(poolHistory.getEpochRos())
+                    .fixedCost(StringUtils.isNotBlank(poolHistory.getFixedCost()) ? new BigInteger(
+                        poolHistory.getFixedCost()) : null)
+                    .margin(poolHistory.getMargin())
+                    .saturationPct(poolHistory.getSaturationPct())
+                    .poolId(poolHash.get().getId())
+                    .build()
+            ).collect(
+                Collectors.toMap(PoolHistory::getEpochNo, Function.identity()));
 
-    var poolHistoryCheck = poolHistoryList.get(smallerCurrentEpoch - 2);
+    var poolHistoryCheck = poolHistoryList.get(currentEpoch - 2);
     boolean isSpendableReward =
         poolHistoryCheck == null
             || poolHistoryCheck.getPoolFees().compareTo(BigInteger.ZERO) != 0
@@ -97,7 +98,7 @@ public class PoolHistoryFetchingServiceImpl implements PoolHistoryFetchingServic
               .getEpochCheckpoint() - 2).collect(Collectors.toList()));
 
       var checkpoint = poolHistoryCheckpoint.get();
-      checkpoint.setEpochCheckpoint(smallerCurrentEpoch - 1);
+      checkpoint.setEpochCheckpoint(currentEpoch - 1);
       checkpoint.setIsSpendableReward(
           isSpendableReward || poolHistoryCheck.getBlockCnt() == 0 ? Boolean.TRUE
                                                                    : Boolean.FALSE);
@@ -105,7 +106,7 @@ public class PoolHistoryFetchingServiceImpl implements PoolHistoryFetchingServic
     } else {
       jooqPoolHistoryRepository.saveAll(poolHistoryList.values().stream().toList());
       var checkpoint = PoolHistoryCheckpoint.builder().view(poolId)
-          .epochCheckpoint(smallerCurrentEpoch - 1)
+          .epochCheckpoint(currentEpoch - 1)
           .build();
 
       checkpoint.setIsSpendableReward(isSpendableReward ? Boolean.TRUE : Boolean.FALSE);
@@ -133,18 +134,6 @@ public class PoolHistoryFetchingServiceImpl implements PoolHistoryFetchingServic
   }
 
   /**
-   * fetch current epoch in Koios
-   *
-   * @return
-   * @throws ApiException
-   */
-  private Integer getCurrentEpochInKoios() throws ApiException {
-    var tip = koiosClient.networkService().getChainTip().getValue();
-
-    return tip.getEpochNo();
-  }
-
-  /**
    * get poolId list that are not in the checkpoint table or in the checkpoint table but have an
    * epoch checkpoint value < (current epoch - 1)
    *
@@ -153,8 +142,7 @@ public class PoolHistoryFetchingServiceImpl implements PoolHistoryFetchingServic
    */
   @Override
   public List<String> getPoolIdListNeedFetchData(List<String> poolIds) throws ApiException {
-    Integer currentEpoch = epochRepository.findMaxEpoch();
-    int smallerCurrentEpoch = Math.min(currentEpoch, getCurrentEpochInKoios());
+    int currentEpoch = epochService.getCurrentEpoch();
 
     Map<String, PoolHistoryCheckpoint> poolHistoryCheckpointMap = poolHistoryCheckpointRepository
         .findByViewIn(poolIds)
@@ -165,7 +153,7 @@ public class PoolHistoryFetchingServiceImpl implements PoolHistoryFetchingServic
         .filter(poolId -> (
             (!poolHistoryCheckpointMap.containsKey(poolId))
                 || poolHistoryCheckpointMap.get(poolId).getEpochCheckpoint()
-                < smallerCurrentEpoch - 1
+                < currentEpoch - 1
                 || !poolHistoryCheckpointMap.get(poolId).getIsSpendableReward()
         ))
         .collect(Collectors.toList());

@@ -5,7 +5,6 @@ import org.cardanofoundation.explorer.consumercommon.entity.EpochStakeCheckpoint
 import org.cardanofoundation.explorer.consumercommon.entity.PoolHash;
 import org.cardanofoundation.explorer.consumercommon.entity.StakeAddress;
 import org.cardanofoundation.explorer.rewards.config.KoiosClient;
-import org.cardanofoundation.explorer.rewards.repository.EpochRepository;
 import org.cardanofoundation.explorer.rewards.repository.EpochStakeCheckpointRepository;
 import org.cardanofoundation.explorer.rewards.repository.PoolHashRepository;
 import org.cardanofoundation.explorer.rewards.repository.StakeAddressRepository;
@@ -14,6 +13,8 @@ import org.cardanofoundation.explorer.rewards.repository.jooq.JOOQEpochStakeRepo
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+
+import org.cardanofoundation.explorer.rewards.service.EpochService;
 import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
 import rest.koios.client.backend.api.account.model.AccountHistory;
@@ -44,7 +45,7 @@ class EpochStakeFetchingServiceImplTest {
   private EpochStakeCheckpointRepository epochStakeCheckpointRepository;
 
   @Mock
-  private EpochRepository epochRepository;
+  private EpochService epochService;
 
   @Mock
   private JOOQEpochStakeRepository jooqEpochStakeRepository;
@@ -132,7 +133,7 @@ class EpochStakeFetchingServiceImplTest {
                 .stakeAddress("stake1u9nzg3s4wvstx0czh2asmeknfl80tn7z8nhm03smzunflas3m8ptg")
                 .epochCheckpoint(413).build()));
 
-    when(epochRepository.findMaxEpoch()).thenReturn(414);
+    when(epochService.getCurrentEpoch()).thenReturn(414);
     // Run the test
     CompletableFuture<Boolean> result = epochStakeFetchingServiceImpl.fetchData(stakeAddressList);
 
@@ -155,7 +156,7 @@ class EpochStakeFetchingServiceImplTest {
             .stakeAddress("stake1u9nzg3s4wvstx0czh2asmeknfl80tn7z8nhm03smzunflas3m8ptg")
             .epochCheckpoint(415).build());
     when(epochStakeCheckpointRepository.findByStakeAddressIn(any())).thenReturn(checkpoints);
-    when(epochRepository.findMaxEpoch()).thenReturn(415);
+    when(epochService.getCurrentEpoch()).thenReturn(415);
 
     // Run the test
     List<String> result = epochStakeFetchingServiceImpl.getStakeAddressListNeedFetchData(
