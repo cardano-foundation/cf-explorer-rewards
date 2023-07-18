@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.5](https://github.com/cardano-foundation/cf-explorer-rewards/compare/v0.1.4...v0.1.5) (2023-07-18)
+
+
+### Bug Fixes
+
+* fix duplicate data when pool_id is null ([990361e](https://github.com/cardano-foundation/cf-explorer-rewards/commit/990361e602120f8c7e365d9b7f5d687c4912bffe))
+
 ## [0.1.4](https://github.com/cardano-foundation/cf-explorer-rewards/compare/v0.1.3...v0.1.4) (2023-07-14)
 
 
