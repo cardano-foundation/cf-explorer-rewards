@@ -1,7 +1,23 @@
-# Cardano Explorer Rewards
+# Iris Rewards
 
-### Reports
-[Mutation report](https://cardano-foundation.github.io/cf-explorer-rewards/mutation-report/)
+<p align="left">
+<img alt="Tests" src="https://github.com/cardano-foundation/cf-explorer-rewards/actions/workflows/tests.yaml/badge.svg?branch=main" />
+<img alt="Coverage" src="https://github.com/cardano-foundation/cf-explorer-rewards/blob/gh-pages/badges/jacoco.svg?raw=true" />
+<img alt="Release" src="https://github.com/cardano-foundation/cf-explorer-rewards/actions/workflows/release.yaml/badge.svg?branch=main" />
+<img alt="Publish" src="https://github.com/cardano-foundation/cf-explorer-rewards/actions/workflows/publish.yaml/badge.svg?branch=main" />
+</p>
+
+This repository provides an API for retrieving reward data for stake pools and delegators. It utilizes [Koios](https://www.koios.rest/) to fetch the data, aggregates and stores it, and serves it for Iris.
+
+👉 Check the [Iris repository](https://github.com/cardano-foundation/cf-explorer) to understand how the microservices work together
+
+## 🧪 Test Reports
+
+To ensure the stability and reliability of this project, unit and mutation tests have been implemented. By clicking on the links below, you can access the detailed test reports and review the outcomes of the tests performed.
+
+📊 [Coverage Report](https://cardano-foundation.github.io/cf-explorer-rewards/coverage-report/)
+
+📊 [Mutation Report](https://cardano-foundation.github.io/cf-explorer-rewards/mutation-report/)
 
 ## Environment value
 - SERVER_PORT: port running
