@@ -77,3 +77,7 @@ application:
     job:
       enable: ${POOL_INFO_DATA_JOB_ENABLED:true}
       fixed-delay:  ${FETCH_AND_SAVE_POOL_INFO_DATA_DELAY:3600000}
+
+logging:
+  level:
+    rest.koios: ERROR
