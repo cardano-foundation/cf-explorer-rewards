@@ -1,7 +1,5 @@
 package org.cardanofoundation.explorer.rewards.config;
 
-import javax.annotation.PostConstruct;
-
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
@@ -27,30 +25,27 @@ public class KoiosClient {
   @Value("${application.koios-base-url}")
   private String baseUrl;
 
-  private BackendService backendService;
-
   public AccountService accountService() {
-    return this.backendService.getAccountService();
+    return this.getBackendService().getAccountService();
   }
 
   public NetworkService networkService() {
-    return this.backendService.getNetworkService();
+    return this.getBackendService().getNetworkService();
   }
 
   public PoolService poolService() {
-    return this.backendService.getPoolService();
+    return this.getBackendService().getPoolService();
   }
 
   public EpochService epochService() {
-    return this.backendService.getEpochService();
+    return this.getBackendService().getEpochService();
   }
 
-  @PostConstruct
-  void setBackendService() {
+  private BackendService getBackendService() {
     if(Boolean.TRUE.equals(baseUrlEnabled)) {
-      this.backendService = BackendFactory.getCustomRPCService(baseUrl);
+      return BackendFactory.getCustomRPCService(baseUrl);
     } else{
-      this.backendService = switch (value) {
+      return switch (value) {
         case NetworkConstants.MAINNET -> BackendFactory.getKoiosMainnetService();
         case NetworkConstants.PREPROD -> BackendFactory.getKoiosPreprodService();
         case NetworkConstants.PREVIEW -> BackendFactory.getKoiosPreviewService();
