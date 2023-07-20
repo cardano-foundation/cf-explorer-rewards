@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.6](https://github.com/cardano-foundation/cf-explorer-rewards/compare/v0.1.5...v0.1.6) (2023-07-19)
+
+
+### Features
+
+* MET-1476 resolve limit of instance BackendService ([cc71f45](https://github.com/cardano-foundation/cf-explorer-rewards/commit/cc71f4577954aff606c05f9051fcf40e8d28205e))
+
 ## [0.1.5](https://github.com/cardano-foundation/cf-explorer-rewards/compare/v0.1.4...v0.1.5) (2023-07-18)
 
 
