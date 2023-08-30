@@ -101,6 +101,47 @@ class JOOQRewardRepositoryTest extends TestDataBaseContainer {
   }
 
   @Test
+  @DisplayName("SaveAll should save success when on conflict unique field")
+  void saveAll_shouldSaveSuccessWhenOnConflictUniqueFieldAndPooIdNull() {
+    var stakeAddress =
+        StakeAddress.builder()
+            .id(1L)
+            .view("stake1uxgfzz027y0scn8pqh220vk08s0nc74plnrl6wmr5nve2lqt5mfls")
+            .build();
+
+    var reward =
+        Reward.builder()
+            .amount(BigInteger.valueOf(1000000))
+            .earnedEpoch(414)
+            .spendableEpoch(415)
+            .type(RewardType.MEMBER)
+            .addr(stakeAddress)
+            .pool(null)
+            .build();
+
+    var reward2 =
+        Reward.builder()
+            .amount(BigInteger.valueOf(1000000))
+            .earnedEpoch(414)
+            .spendableEpoch(415)
+            .type(RewardType.MEMBER)
+            .addr(stakeAddress)
+            .pool(null)
+            .build();
+
+    List<CompletableFuture<Void>> completableFutures =
+        List.of(
+            CompletableFuture.runAsync(
+                () -> jooqRewardRepository.saveAll(List.of(reward, reward2, reward2))),
+            CompletableFuture.runAsync(
+                () -> jooqRewardRepository.saveAll(List.of(reward, reward2, reward))));
+
+    completableFutures.forEach(CompletableFuture::join);
+
+    assertEquals(1, dsl.fetchCount(table(tableName)));
+  }
+
+  @Test
   @DisplayName("SaveAll should save success when does not conflict unique field")
   void saveAll_shouldSaveSuccessWhenDoesNotOnConflictUniqueField() {
     var stakeAddress =

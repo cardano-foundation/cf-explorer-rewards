@@ -3,6 +3,7 @@ package org.cardanofoundation.explorer.rewards.repository.jooq;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -11,6 +12,7 @@ import org.springframework.stereotype.Repository;
 import org.cardanofoundation.explorer.consumercommon.entity.Reward_;
 import org.cardanofoundation.explorer.rewards.util.EntityUtil;
 import org.jooq.DSLContext;
+import org.jooq.Field;
 import org.jooq.Query;
 
 import org.cardanofoundation.explorer.consumercommon.entity.Reward;
@@ -63,7 +65,7 @@ public class JOOQRewardRepository {
                   field(addressIdField),
                   field(typeField),
                   field(earnedEpochField),
-                  poolId == null ? coalesce(field(poolIdField), -1) : field(poolIdField)
+                  coalesce(field(poolIdField), -1)
               )
               .doNothing();
 
