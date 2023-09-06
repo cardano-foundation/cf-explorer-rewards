@@ -44,7 +44,7 @@ public class EpochConcurrentFetching {
                 return null;
               }
           );
-      if (Objects.nonNull(future)) {
+      if (Objects.nonNull(future) && Objects.nonNull(future.join())) {
         futures.add(future);
       }
     }
