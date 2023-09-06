@@ -44,12 +44,14 @@ public class EpochConcurrentFetching {
                 return null;
               }
           );
-      if (Objects.nonNull(future) && Objects.nonNull(future.join())) {
+      if (Objects.nonNull(future)) {
         futures.add(future);
       }
     }
 
-    List<Epoch> result = futures.stream().map(CompletableFuture::join).toList();
+    List<Epoch> result = futures.stream()
+        .filter(epoch -> Objects.nonNull(epoch.join()))
+        .map(CompletableFuture::join).toList();
 
     log.info("Fetch and save epoch record concurrently by koios api: {} ms",
         System.currentTimeMillis() - curTime);

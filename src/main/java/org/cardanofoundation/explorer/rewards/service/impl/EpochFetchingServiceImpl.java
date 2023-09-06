@@ -40,8 +40,7 @@ public class EpochFetchingServiceImpl implements EpochFetchingService {
     if(Objects.isNull(epoch)
         || Objects.nonNull(epoch.getRewardsDistributed())
         || epoch.getEra().equals(EraType.BYRON)
-        || epoch.getEra().equals(EraType.BYRON_EBB)
-        || epoch.getEra().equals(EraType.SHELLEY)) {
+        || epoch.getEra().equals(EraType.BYRON_EBB)) {
       return null;
     }
     String totalRewards = koiosClient.epochService().getEpochInformationByEpoch(epochNo).getValue().getTotalRewards();
