@@ -7,6 +7,7 @@ import lombok.SneakyThrows;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.cardanofoundation.explorer.consumercommon.entity.Epoch;
+import org.cardanofoundation.explorer.consumercommon.enumeration.EraType;
 import org.cardanofoundation.explorer.rewards.config.KoiosClient;
 import org.cardanofoundation.explorer.rewards.repository.EpochRepository;
 import org.cardanofoundation.explorer.rewards.service.EpochFetchingService;
@@ -36,14 +37,17 @@ public class EpochFetchingServiceImpl implements EpochFetchingService {
   @SneakyThrows
   public CompletableFuture<Epoch> fetchData(Integer epochNo) {
     Epoch epoch = epochRepository.findByNo(epochNo).orElse(null);
-    if(Objects.isNull(epoch)) {
-      return null;
-    }
-    if(Objects.nonNull(epoch.getRewardsDistributed())) {
+    if(Objects.isNull(epoch)
+        || Objects.nonNull(epoch.getRewardsDistributed())
+        || epoch.getEra().equals(EraType.BYRON)
+        || epoch.getEra().equals(EraType.BYRON_EBB)) {
       return null;
     }
     String totalRewards = koiosClient.epochService().getEpochInformationByEpoch(epochNo).getValue().getTotalRewards();
-    BigInteger rewardDistributed = StringUtils.isEmpty(totalRewards) ? BigInteger.ZERO : new BigInteger(totalRewards);
+    if (StringUtils.isEmpty(totalRewards)) {
+      return CompletableFuture.completedFuture(epoch);
+    }
+    BigInteger rewardDistributed = new BigInteger(totalRewards);
     epochRepository.updateRewardDistributedByNo(rewardDistributed, epochNo);
     epoch.setRewardsDistributed(rewardDistributed);
     return CompletableFuture.completedFuture(epoch);
