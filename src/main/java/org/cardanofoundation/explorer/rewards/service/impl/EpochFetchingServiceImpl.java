@@ -31,6 +31,9 @@ public class EpochFetchingServiceImpl implements EpochFetchingService {
   final KoiosClient koiosClient;
   final EpochRepository epochRepository;
 
+  static final Integer NUMBER_EPOCH_CALC_AND_DELIVER_REWARD = 2;
+
+
   @Override
   @Async
   @Transactional(rollbackFor = {Exception.class})
@@ -45,7 +48,12 @@ public class EpochFetchingServiceImpl implements EpochFetchingService {
     }
     String totalRewards = koiosClient.epochService().getEpochInformationByEpoch(epochNo).getValue().getTotalRewards();
     if (StringUtils.isEmpty(totalRewards)) {
-      return CompletableFuture.completedFuture(epoch);
+      Integer currentEpoch = epochRepository.findMaxEpoch();
+      if (epoch.getNo() <= currentEpoch - NUMBER_EPOCH_CALC_AND_DELIVER_REWARD) {
+        totalRewards = BigInteger.ZERO.toString();
+      } else {
+        return CompletableFuture.completedFuture(epoch);
+      }
     }
     BigInteger rewardDistributed = new BigInteger(totalRewards);
     epochRepository.updateRewardDistributedByNo(rewardDistributed, epochNo);
@@ -60,8 +68,6 @@ public class EpochFetchingServiceImpl implements EpochFetchingService {
 
     List<Integer> epochContainsRewardDistributed = epochRepository.findByRewardsDistributedIsNotNull()
         .stream().map(Epoch::getNo).toList();
-
-    Integer NUMBER_EPOCH_CALC_AND_DELIVER_REWARD = 2;
     return epochNoList.stream()
         .filter(epoch -> !epochContainsRewardDistributed.contains(epoch)
             && epoch <= currentEpoch - NUMBER_EPOCH_CALC_AND_DELIVER_REWARD).toList();
