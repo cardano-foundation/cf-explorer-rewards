@@ -3,7 +3,7 @@ name: Run Tests
 on:
   push:
   pull_request:
-    types: [ opened, synchronize ]
+    types: [opened, synchronize]
   workflow_dispatch:
 
 env:
@@ -14,7 +14,7 @@ env:
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -22,8 +22,8 @@ jobs:
       - name: Setup JDK 18
         uses: actions/setup-java@v3
         with:
-          java-version: '18'
-          distribution: 'temurin'
+          java-version: "18"
+          distribution: "temurin"
           cache: maven
 
       - name: Setup depends
@@ -31,7 +31,7 @@ jobs:
           pip install yq
 
       - name: Setup maven settings.xml
-        run: | 
+        run: |
           envsubst < ./.m2/settings.default.xml.tpl > ./.m2/settings.xml
 
       - name: Build
@@ -44,15 +44,15 @@ jobs:
 
   mutation-test:
     needs: test
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
       - name: Checkout
         uses: actions/checkout@v3
       - name: Setup JDK 18
         uses: actions/setup-java@v3
         with:
-          java-version: '18'
-          distribution: 'temurin'
+          java-version: "18"
+          distribution: "temurin"
           cache: maven
 
       - name: Setup depends
