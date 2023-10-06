@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.1.7](https://github.com/cardano-foundation/cf-explorer-rewards/compare/v0.1.6...v0.1.7) (2023-10-06)
+
+
+### Bug Fixes
+
+* [MET-1642] update code to only use one unique constraint in reward table ([c59acaf](https://github.com/cardano-foundation/cf-explorer-rewards/commit/c59acaf4d46771d664810cee1d738e1b8f66611d))
+* fetch reward distributed for Shelly block ([f661d3b](https://github.com/cardano-foundation/cf-explorer-rewards/commit/f661d3b9dc9adc6ff15dfd01e7d7c2b4a63efd37))
+* MET-1629 missing rewards for epoch ([aef2d32](https://github.com/cardano-foundation/cf-explorer-rewards/commit/aef2d32b6b57bf92dabb69f970905ebc38556d8c))
+* MET-1629 update unit test ([27f33da](https://github.com/cardano-foundation/cf-explorer-rewards/commit/27f33dae110bae21b51c67764fa49f706e82a993))
+* MET-1695 update logic save reward distributed from koios ([0a37cff](https://github.com/cardano-foundation/cf-explorer-rewards/commit/0a37cff11030b208786c9fa4b43152ce1868b2c9))
+
 ## [0.1.6](https://github.com/cardano-foundation/cf-explorer-rewards/compare/v0.1.5...v0.1.6) (2023-07-19)
 
 
