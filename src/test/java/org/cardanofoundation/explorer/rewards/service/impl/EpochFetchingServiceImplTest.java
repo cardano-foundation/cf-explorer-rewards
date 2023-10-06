@@ -1,6 +1,7 @@
 package org.cardanofoundation.explorer.rewards.service.impl;
 
 import org.cardanofoundation.explorer.consumercommon.entity.Epoch;
+import org.cardanofoundation.explorer.consumercommon.enumeration.EraType;
 import org.cardanofoundation.explorer.rewards.config.KoiosClient;
 import org.cardanofoundation.explorer.rewards.repository.EpochRepository;
 import org.junit.jupiter.api.Test;
@@ -36,6 +37,28 @@ class EpochFetchingServiceImplTest {
   private EpochFetchingServiceImpl epochFetchingService;
 
   @Test
+  void testFetchDataWithByronBlock() {
+    // Setup
+    Integer epoch = 315;
+
+    var epochInfo = new EpochInfo();
+    epochInfo.setEpochNo(epoch);
+    epochInfo.setTotalRewards("577641621267691");
+
+    when(epochRepository.findByNo(any()))
+        .thenReturn(Optional
+            .ofNullable(Epoch
+                .builder()
+                .no(epoch)
+                .era(EraType.BYRON)
+                .build()));
+
+    // Run the test
+    final CompletableFuture<Epoch> result = epochFetchingService.fetchData(epoch);
+    assertNull(result);
+  }
+
+  @Test
   void testFetchData() throws Exception {
     // Setup
     Integer epoch = 315;
@@ -49,6 +72,7 @@ class EpochFetchingServiceImplTest {
                     .ofNullable(Epoch
                             .builder()
                             .no(epoch)
+                            .era(EraType.SHELLEY)
                             .build()));
     when(koiosClient.epochService().getEpochInformationByEpoch(epoch)
         .getValue()).thenReturn(epochInfo);
@@ -57,7 +81,7 @@ class EpochFetchingServiceImplTest {
     // Run the test
     final CompletableFuture<Epoch> result = epochFetchingService.fetchData(epoch);
 
-    assertEquals(result.get().getNo(), 315);
+    assertEquals(315, result.get().getNo());
     assertEquals(result.get().getRewardsDistributed(), new BigInteger("577641621267691"));
   }
 

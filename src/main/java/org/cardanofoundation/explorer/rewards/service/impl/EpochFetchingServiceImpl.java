@@ -7,6 +7,7 @@ import lombok.SneakyThrows;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.cardanofoundation.explorer.consumercommon.entity.Epoch;
+import org.cardanofoundation.explorer.consumercommon.enumeration.EraType;
 import org.cardanofoundation.explorer.rewards.config.KoiosClient;
 import org.cardanofoundation.explorer.rewards.repository.EpochRepository;
 import org.cardanofoundation.explorer.rewards.service.EpochFetchingService;
@@ -30,20 +31,31 @@ public class EpochFetchingServiceImpl implements EpochFetchingService {
   final KoiosClient koiosClient;
   final EpochRepository epochRepository;
 
+  static final Integer NUMBER_EPOCH_CALC_AND_DELIVER_REWARD = 2;
+
+
   @Override
   @Async
   @Transactional(rollbackFor = {Exception.class})
   @SneakyThrows
   public CompletableFuture<Epoch> fetchData(Integer epochNo) {
     Epoch epoch = epochRepository.findByNo(epochNo).orElse(null);
-    if(Objects.isNull(epoch)) {
-      return null;
-    }
-    if(Objects.nonNull(epoch.getRewardsDistributed())) {
+    if(Objects.isNull(epoch)
+        || Objects.nonNull(epoch.getRewardsDistributed())
+        || epoch.getEra().equals(EraType.BYRON)
+        || epoch.getEra().equals(EraType.BYRON_EBB)) {
       return null;
     }
     String totalRewards = koiosClient.epochService().getEpochInformationByEpoch(epochNo).getValue().getTotalRewards();
-    BigInteger rewardDistributed = StringUtils.isEmpty(totalRewards) ? BigInteger.ZERO : new BigInteger(totalRewards);
+    if (StringUtils.isEmpty(totalRewards)) {
+      Integer currentEpoch = epochRepository.findMaxEpoch();
+      if (epoch.getNo() <= currentEpoch - NUMBER_EPOCH_CALC_AND_DELIVER_REWARD) {
+        totalRewards = BigInteger.ZERO.toString();
+      } else {
+        return CompletableFuture.completedFuture(epoch);
+      }
+    }
+    BigInteger rewardDistributed = new BigInteger(totalRewards);
     epochRepository.updateRewardDistributedByNo(rewardDistributed, epochNo);
     epoch.setRewardsDistributed(rewardDistributed);
     return CompletableFuture.completedFuture(epoch);
@@ -56,8 +68,6 @@ public class EpochFetchingServiceImpl implements EpochFetchingService {
 
     List<Integer> epochContainsRewardDistributed = epochRepository.findByRewardsDistributedIsNotNull()
         .stream().map(Epoch::getNo).toList();
-
-    Integer NUMBER_EPOCH_CALC_AND_DELIVER_REWARD = 2;
     return epochNoList.stream()
         .filter(epoch -> !epochContainsRewardDistributed.contains(epoch)
             && epoch <= currentEpoch - NUMBER_EPOCH_CALC_AND_DELIVER_REWARD).toList();
