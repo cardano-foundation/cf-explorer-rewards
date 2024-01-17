@@ -7,7 +7,7 @@
   <version>0.1.8-SNAPSHOT</version>
   <name>cardano-explorer-rewards</name>
   <packaging>jar</packaging>
-  <description>Explorer Reward.</description>
+  <description>This projects is meant to bring the rewards data for the explorer. It currently uses Koios to fetch the required data. A separate project to calculate the rewards without relying on DB Sync can be found here: https://github.com/cardano-foundation/cf-java-rewards-calculation</description>
   <properties>
     <version.java>17</version.java>
     <version.lombok>1.18.26</version.lombok>

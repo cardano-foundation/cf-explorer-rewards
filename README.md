@@ -1,15 +1,17 @@
-# Iris Rewards
+# Explorer Rewards Service
 
 <p align="left">
 <img alt="Tests" src="https://github.com/cardano-foundation/cf-explorer-rewards/actions/workflows/tests.yaml/badge.svg?branch=main" />
 <img alt="Coverage" src="https://github.com/cardano-foundation/cf-explorer-rewards/blob/gh-pages/badges/jacoco.svg?raw=true" />
 <img alt="Release" src="https://github.com/cardano-foundation/cf-explorer-rewards/actions/workflows/release.yaml/badge.svg?branch=main" />
 <img alt="Publish" src="https://github.com/cardano-foundation/cf-explorer-rewards/actions/workflows/publish.yaml/badge.svg?branch=main" />
+<a href="https://conventionalcommits.org"><img alt="conventionalcommits" src="https://img.shields.io/badge/Conventional%20Commits-1.0.0-%23FE5196?logo=conventionalcommits" /></a>
 </p>
 
-This repository provides an API for retrieving reward data for stake pools and delegators. It utilizes [Koios](https://www.koios.rest/) to fetch the data, aggregates and stores it, and serves it for Iris.
+This repository provides an API for retrieving reward data for stake pools and delegators. It utilizes [Koios](https://www.koios.rest/) to fetch the data, aggregates and stores it, and serves it for the cardano explorer.
+It currently uses Koios to fetch the required data. A separate project to calculate the rewards without relying on DB Sync can be found [here](https://github.com/cardano-foundation/cf-java-rewards-calculation).
 
-👉 Check the [Iris repository](https://github.com/cardano-foundation/cf-explorer) to understand how the microservices work together
+👉 Check the [Explorer repository](https://github.com/cardano-foundation/cf-explorer) to understand how the microservices work together
 
 ## 🧪 Test Reports
 
