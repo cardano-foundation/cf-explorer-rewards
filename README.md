@@ -2,7 +2,7 @@
 
 <p align="left">
 <img alt="Tests" src="https://github.com/cardano-foundation/cf-explorer-rewards/actions/workflows/tests.yaml/badge.svg?branch=main" />
-<img alt="Coverage" src="https://github.com/cardano-foundation/cf-explorer-rewards/blob/gh-pages/badges/jacoco.svg?raw=true" />
+<img alt="Coverage" src="https://cardano-foundation.github.io/cf-explorer-authentication/badges/jacoco.svg" />
 <img alt="Release" src="https://github.com/cardano-foundation/cf-explorer-rewards/actions/workflows/release.yaml/badge.svg?branch=main" />
 <img alt="Publish" src="https://github.com/cardano-foundation/cf-explorer-rewards/actions/workflows/publish.yaml/badge.svg?branch=main" />
 <a href="https://app.fossa.com/projects/custom%2B41588%2Fgit%40github.com%3Acardano-foundation%2Fcf-explorer-rewards.git?ref=badge_small"><img alt="FOSSA Status" src="https://app.fossa.com/api/projects/custom%2B41588%2Fgit%40github.com%3Acardano-foundation%2Fcf-explorer-rewards.git.svg?type=small"/></a>
