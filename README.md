@@ -2,7 +2,7 @@
 
 <p align="left">
 <img alt="Tests" src="https://github.com/cardano-foundation/cf-explorer-rewards/actions/workflows/tests.yaml/badge.svg?branch=main" />
-<img alt="Coverage" src="https://github.com/cardano-foundation/cf-explorer-rewards/blob/gh-pages/badges/jacoco.svg?raw=true" />
+<img alt="Coverage" src="https://cardano-foundation.github.io/cf-explorer-authentication/badges/jacoco.svg" />
 <img alt="Release" src="https://github.com/cardano-foundation/cf-explorer-rewards/actions/workflows/release.yaml/badge.svg?branch=main" />
 <img alt="Publish" src="https://github.com/cardano-foundation/cf-explorer-rewards/actions/workflows/publish.yaml/badge.svg?branch=main" />
 <a href="https://conventionalcommits.org"><img alt="conventionalcommits" src="https://img.shields.io/badge/Conventional%20Commits-1.0.0-%23FE5196?logo=conventionalcommits" /></a>
