@@ -22,7 +22,7 @@ To ensure the stability and reliability of this project, unit and mutation tests
 
 📊 [Mutation Report](https://cardano-foundation.github.io/cf-explorer-rewards/mutation-report/)
 
-## Environment value
+## 🌱 Environment Variables
 - SERVER_PORT: port running
 - POSTGRES_HOST: database host
 - POSTGRES_PORT: database port
