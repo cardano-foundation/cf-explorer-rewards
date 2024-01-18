@@ -45,3 +45,4 @@ build/
 
 ### Maven ###
 .m2/settings.xml
+.DS_Store
