@@ -7,6 +7,5 @@ import org.junit.jupiter.api.Test;
 @SpringBootTest
 class ExplorerRewardsApplicationTests {
   @Test
-  void contextLoads() {
-  }
+  void contextLoads() {}
 }

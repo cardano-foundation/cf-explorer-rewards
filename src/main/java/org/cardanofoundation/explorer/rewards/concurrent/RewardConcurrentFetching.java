@@ -14,8 +14,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
-import org.cardanofoundation.explorer.rewards.service.RewardFetchingService;
 import rest.koios.client.backend.api.base.exception.ApiException;
+
+import org.cardanofoundation.explorer.rewards.service.RewardFetchingService;
 
 @Component
 @FieldDefaults(level = AccessLevel.PRIVATE)
@@ -31,7 +32,7 @@ public class RewardConcurrentFetching {
   int subListSize;
 
   public Boolean fetchDataConcurrently(List<String> stakeAddressList) {
-    //TODO: validate stake address list
+    // TODO: validate stake address list
     var curTime = System.currentTimeMillis();
 
     if (stakeAddressList.isEmpty()) {
@@ -42,10 +43,11 @@ public class RewardConcurrentFetching {
     try {
       // we only fetch data with addresses that are not in the checkpoint table
       // or in the checkpoint table but have an epoch checkpoint value < (current epoch - 1)
-      stakeAddressListNeedFetchData = rewardFetchingService.getStakeAddressListNeedFetchData(
-          stakeAddressList);
+      stakeAddressListNeedFetchData =
+          rewardFetchingService.getStakeAddressListNeedFetchData(stakeAddressList);
     } catch (ApiException e) {
-      log.error("Exception occurs when calling getStakeAddressListNeedFetchData: {}", e.getMessage());
+      log.error(
+          "Exception occurs when calling getStakeAddressListNeedFetchData: {}", e.getMessage());
       return Boolean.FALSE;
     }
 
@@ -61,12 +63,14 @@ public class RewardConcurrentFetching {
       int endIndex = Math.min(i + subListSize, stakeAddressList.size());
       var sublist = stakeAddressList.subList(i, endIndex);
 
-      CompletableFuture<Boolean> future = rewardFetchingService.fetchData(sublist).exceptionally(
-          ex -> {
-            log.error("Exception occurred in fetch reward data: {}", ex.getMessage());
-            return Boolean.FALSE;
-          }
-      );
+      CompletableFuture<Boolean> future =
+          rewardFetchingService
+              .fetchData(sublist)
+              .exceptionally(
+                  ex -> {
+                    log.error("Exception occurred in fetch reward data: {}", ex.getMessage());
+                    return Boolean.FALSE;
+                  });
       futures.add(future);
     }
 
@@ -74,7 +78,8 @@ public class RewardConcurrentFetching {
 
     boolean result = futures.stream().allMatch(CompletableFuture::join);
 
-    log.info("Fetch and save reward record concurrently by koios api: {} ms",
+    log.info(
+        "Fetch and save reward record concurrently by koios api: {} ms",
         System.currentTimeMillis() - curTime);
 
     return result;

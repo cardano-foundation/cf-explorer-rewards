@@ -2,7 +2,6 @@ package org.cardanofoundation.explorer.rewards.repository.jooq;
 
 import static org.jooq.impl.DSL.field;
 import static org.jooq.impl.DSL.table;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.List;
@@ -14,8 +13,6 @@ import org.springframework.boot.test.autoconfigure.jooq.JooqTest;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.test.context.ActiveProfiles;
 
-import org.cardanofoundation.explorer.consumercommon.entity.PoolInfoCheckpoint_;
-import org.cardanofoundation.explorer.rewards.util.EntityUtil;
 import org.jooq.DSLContext;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -23,16 +20,16 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import org.cardanofoundation.explorer.consumercommon.entity.PoolInfoCheckpoint;
+import org.cardanofoundation.explorer.consumercommon.entity.PoolInfoCheckpoint_;
+import org.cardanofoundation.explorer.rewards.util.EntityUtil;
 
 @JooqTest
 @ActiveProfiles("integration-test")
 @ComponentScan
 class JOOQPoolInfoCheckPointRepositoryTest extends TestDataBaseContainer {
 
-  @Autowired
-  private DSLContext dsl;
-  @Autowired
-  private JOOQPoolInfoCheckpointRepository jooqPoolInfoCheckpointRepository;
+  @Autowired private DSLContext dsl;
+  @Autowired private JOOQPoolInfoCheckpointRepository jooqPoolInfoCheckpointRepository;
 
   @Value("${spring.jpa.properties.hibernate.default_schema}")
   private String schema;
@@ -79,11 +76,8 @@ class JOOQPoolInfoCheckPointRepositoryTest extends TestDataBaseContainer {
 
     jooqPoolInfoCheckpointRepository.saveAll(List.of(checkpoint1, checkpoint2, checkpoint3));
     assertEquals(3, dsl.fetchCount(table(tableName)));
-    assertEquals(
-        1, dsl.fetchCount(table(tableName), field(viewField).eq("poolView1")));
-    assertEquals(
-        1, dsl.fetchCount(table(tableName), field(viewField).eq("poolView2")));
-    assertEquals(
-        1, dsl.fetchCount(table(tableName), field(viewField).eq("poolView3")));
+    assertEquals(1, dsl.fetchCount(table(tableName), field(viewField).eq("poolView1")));
+    assertEquals(1, dsl.fetchCount(table(tableName), field(viewField).eq("poolView2")));
+    assertEquals(1, dsl.fetchCount(table(tableName), field(viewField).eq("poolView3")));
   }
 }

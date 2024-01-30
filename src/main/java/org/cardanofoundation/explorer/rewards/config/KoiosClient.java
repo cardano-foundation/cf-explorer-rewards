@@ -4,13 +4,14 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
-import org.cardanofoundation.explorer.rewards.constant.NetworkConstants;
 import rest.koios.client.backend.api.account.AccountService;
 import rest.koios.client.backend.api.epoch.EpochService;
 import rest.koios.client.backend.api.network.NetworkService;
 import rest.koios.client.backend.api.pool.PoolService;
 import rest.koios.client.backend.factory.BackendFactory;
 import rest.koios.client.backend.factory.BackendService;
+
+import org.cardanofoundation.explorer.rewards.constant.NetworkConstants;
 
 @Component
 @Profile("koios")
@@ -42,9 +43,9 @@ public class KoiosClient {
   }
 
   private BackendService getBackendService() {
-    if(Boolean.TRUE.equals(baseUrlEnabled)) {
+    if (Boolean.TRUE.equals(baseUrlEnabled)) {
       return BackendFactory.getCustomRPCService(baseUrl);
-    } else{
+    } else {
       return switch (value) {
         case NetworkConstants.MAINNET -> BackendFactory.getKoiosMainnetService();
         case NetworkConstants.PREPROD -> BackendFactory.getKoiosPreprodService();

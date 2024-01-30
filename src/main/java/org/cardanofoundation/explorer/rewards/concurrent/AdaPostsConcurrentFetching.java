@@ -1,16 +1,18 @@
 package org.cardanofoundation.explorer.rewards.concurrent;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
+
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
-import org.cardanofoundation.explorer.rewards.service.AdaPotsFetchingService;
+
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.CompletableFuture;
+import org.cardanofoundation.explorer.rewards.service.AdaPotsFetchingService;
 
 @Component
 @FieldDefaults(level = AccessLevel.PRIVATE)
@@ -22,7 +24,7 @@ public class AdaPostsConcurrentFetching {
   final AdaPotsFetchingService adaPotsFetchingService;
 
   public Boolean fetchDataConcurrently(List<Integer> epochs) {
-    //TODO: validate stake address list
+    // TODO: validate stake address list
     var curTime = System.currentTimeMillis();
 
     List<Integer> epochsNeedFetchData = adaPotsFetchingService.getEpochsNeedFetchData(epochs);
@@ -36,13 +38,14 @@ public class AdaPostsConcurrentFetching {
     List<CompletableFuture<Boolean>> futures = new ArrayList<>();
 
     for (var epoch : epochsNeedFetchData) {
-      CompletableFuture<Boolean> future = adaPotsFetchingService.fetchData(epoch)
-          .exceptionally(
-              ex -> {
-                log.error("Exception occurred in fetch ada-posts data}: {}", ex.getMessage());
-                return Boolean.FALSE;
-              }
-          );
+      CompletableFuture<Boolean> future =
+          adaPotsFetchingService
+              .fetchData(epoch)
+              .exceptionally(
+                  ex -> {
+                    log.error("Exception occurred in fetch ada-posts data}: {}", ex.getMessage());
+                    return Boolean.FALSE;
+                  });
       futures.add(future);
     }
 
@@ -50,8 +53,9 @@ public class AdaPostsConcurrentFetching {
 
     boolean result = futures.stream().allMatch(CompletableFuture::join);
 
-    log.info("Fetch and save ada-posts record concurrently by koios api: {} ms",
-             System.currentTimeMillis() - curTime);
+    log.info(
+        "Fetch and save ada-posts record concurrently by koios api: {} ms",
+        System.currentTimeMillis() - curTime);
 
     return result;
   }

@@ -6,6 +6,4 @@ import org.springframework.stereotype.Repository;
 import org.cardanofoundation.explorer.consumercommon.entity.PoolInfo;
 
 @Repository
-public interface PoolInfoRepository extends JpaRepository<PoolInfo, Long> {
-
-}
+public interface PoolInfoRepository extends JpaRepository<PoolInfo, Long> {}

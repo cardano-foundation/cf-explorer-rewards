@@ -1,29 +1,28 @@
 package org.cardanofoundation.explorer.rewards.service.impl;
 
-import org.cardanofoundation.explorer.rewards.config.KoiosClient;
-import org.cardanofoundation.explorer.rewards.repository.EpochRepository;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.when;
+
 import org.mockito.Answers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import org.cardanofoundation.explorer.rewards.config.KoiosClient;
+import org.cardanofoundation.explorer.rewards.repository.EpochRepository;
 
 @ExtendWith(MockitoExtension.class)
 class EpochServiceImplTest {
 
-  @Mock
-  private EpochRepository epochRepository;
+  @Mock private EpochRepository epochRepository;
+
   @Mock(answer = Answers.RETURNS_DEEP_STUBS)
   private KoiosClient koiosClient;
-  @InjectMocks
-  private EpochServiceImpl epochServiceImpl;
+
+  @InjectMocks private EpochServiceImpl epochServiceImpl;
 
   @Test
   void testGetCurrentEpoch() throws Exception {

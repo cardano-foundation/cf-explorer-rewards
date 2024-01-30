@@ -18,13 +18,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import io.micrometer.common.util.StringUtils;
+import rest.koios.client.backend.api.base.exception.ApiException;
+
 import org.cardanofoundation.explorer.consumercommon.entity.PoolHash;
 import org.cardanofoundation.explorer.consumercommon.entity.PoolInfo;
 import org.cardanofoundation.explorer.rewards.config.KoiosClient;
 import org.cardanofoundation.explorer.rewards.repository.PoolHashRepository;
 import org.cardanofoundation.explorer.rewards.repository.jooq.JOOQPoolInfoRepository;
 import org.cardanofoundation.explorer.rewards.service.EpochService;
-import rest.koios.client.backend.api.base.exception.ApiException;
 
 @Service
 @RequiredArgsConstructor
@@ -38,7 +39,9 @@ public class PoolInfoDataService {
   final EpochService epochService;
 
   @Transactional
-  @Retryable(retryFor = {Exception.class}, maxAttempts = 3)
+  @Retryable(
+      retryFor = {Exception.class},
+      maxAttempts = 3)
   @SneakyThrows
   @Async
   public CompletableFuture<Boolean> fetchData(List<String> poolIds) {
@@ -46,21 +49,34 @@ public class PoolInfoDataService {
     int currentEpoch = epochService.getCurrentEpoch();
     var dataFromKoios = getPoolInfoList(poolIds);
 
-    var poolHashMap = poolHashRepository.findByViewIn(poolIds).stream().collect(Collectors.toMap(
-        PoolHash::getView, Function.identity()));
+    var poolHashMap =
+        poolHashRepository.findByViewIn(poolIds).stream()
+            .collect(Collectors.toMap(PoolHash::getView, Function.identity()));
 
-    List<PoolInfo> poolInfoList = dataFromKoios.stream().map(poolInfo ->
-            PoolInfo.builder().poolId(poolHashMap.get(poolInfo.getPoolIdBech32()).getId())
-                .fetchedAtEpoch(currentEpoch)
-                .activeStake(StringUtils.isNotBlank(poolInfo.getActiveStake()) ? new BigInteger(
-                    poolInfo.getActiveStake()) : null)
-                .liveStake(StringUtils.isNotBlank(poolInfo.getLiveStake()) ? new BigInteger(
-                    poolInfo.getLiveStake()) : null)
-                .liveSaturation(poolInfo.getLiveSaturation()).build())
-        .collect(Collectors.toList());
+    List<PoolInfo> poolInfoList =
+        dataFromKoios.stream()
+            .map(
+                poolInfo ->
+                    PoolInfo.builder()
+                        .poolId(poolHashMap.get(poolInfo.getPoolIdBech32()).getId())
+                        .fetchedAtEpoch(currentEpoch)
+                        .activeStake(
+                            StringUtils.isNotBlank(poolInfo.getActiveStake())
+                                ? new BigInteger(poolInfo.getActiveStake())
+                                : null)
+                        .liveStake(
+                            StringUtils.isNotBlank(poolInfo.getLiveStake())
+                                ? new BigInteger(poolInfo.getLiveStake())
+                                : null)
+                        .liveSaturation(poolInfo.getLiveSaturation())
+                        .build())
+            .collect(Collectors.toList());
 
-    log.info("fetch {} pool_info by koios api: {} ms, with poolIds input size {}",
-        poolInfoList.size(), System.currentTimeMillis() - curTime, poolIds.size());
+    log.info(
+        "fetch {} pool_info by koios api: {} ms, with poolIds input size {}",
+        poolInfoList.size(),
+        System.currentTimeMillis() - curTime,
+        poolIds.size());
 
     jooqPoolInfoRepository.saveAll(poolInfoList);
     return CompletableFuture.completedFuture(Boolean.TRUE);
@@ -74,11 +90,7 @@ public class PoolInfoDataService {
    * @throws ApiException
    */
   private List<rest.koios.client.backend.api.pool.model.PoolInfo> getPoolInfoList(
-      List<String> poolIdList)
-      throws ApiException {
-    return koiosClient.poolService()
-        .getPoolInformation(poolIdList, null)
-        .getValue();
+      List<String> poolIdList) throws ApiException {
+    return koiosClient.poolService().getPoolInformation(poolIdList, null).getValue();
   }
-
 }

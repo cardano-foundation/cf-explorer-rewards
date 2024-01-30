@@ -12,5 +12,6 @@ import org.cardanofoundation.explorer.consumercommon.entity.PoolHash;
 @Repository
 public interface PoolHashRepository extends JpaRepository<PoolHash, Long> {
   List<PoolHash> findByViewIn(Collection<String> views);
+
   Optional<PoolHash> findByView(String view);
 }
