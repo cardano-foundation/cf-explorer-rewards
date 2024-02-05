@@ -1,5 +1,8 @@
 package org.cardanofoundation.explorer.rewards.repository.jooq;
 
+import static org.jooq.impl.DSL.field;
+import static org.jooq.impl.DSL.table;
+
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
@@ -8,14 +11,12 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import org.cardanofoundation.explorer.consumercommon.entity.EpochStake;
-import org.cardanofoundation.explorer.consumercommon.entity.EpochStake_;
-import org.cardanofoundation.explorer.rewards.util.EntityUtil;
 import org.jooq.DSLContext;
 import org.jooq.Query;
 
-import static org.jooq.impl.DSL.field;
-import static org.jooq.impl.DSL.table;
+import org.cardanofoundation.explorer.consumercommon.entity.EpochStake;
+import org.cardanofoundation.explorer.consumercommon.entity.EpochStake_;
+import org.cardanofoundation.explorer.rewards.util.EntityUtil;
 
 @Component
 public class JOOQEpochStakeRepository {
@@ -24,8 +25,8 @@ public class JOOQEpochStakeRepository {
 
   private final EntityUtil entityUtil;
 
-  public JOOQEpochStakeRepository(DSLContext dsl,
-                                  @Value("${spring.jpa.properties.hibernate.default_schema}") String schema) {
+  public JOOQEpochStakeRepository(
+      DSLContext dsl, @Value("${spring.jpa.properties.hibernate.default_schema}") String schema) {
     this.dsl = dsl;
     this.entityUtil = new EntityUtil(schema, EpochStake.class);
   }

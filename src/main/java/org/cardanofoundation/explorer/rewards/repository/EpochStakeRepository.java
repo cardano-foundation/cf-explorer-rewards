@@ -6,6 +6,4 @@ import org.springframework.stereotype.Repository;
 import org.cardanofoundation.explorer.consumercommon.entity.EpochStake;
 
 @Repository
-public interface EpochStakeRepository extends JpaRepository<EpochStake, Long> {
-
-}
+public interface EpochStakeRepository extends JpaRepository<EpochStake, Long> {}

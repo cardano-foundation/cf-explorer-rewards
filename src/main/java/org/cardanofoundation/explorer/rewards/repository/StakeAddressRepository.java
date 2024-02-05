@@ -8,7 +8,6 @@ import org.springframework.stereotype.Repository;
 
 import org.cardanofoundation.explorer.consumercommon.entity.StakeAddress;
 
-
 @Repository
 public interface StakeAddressRepository extends JpaRepository<StakeAddress, Long> {
 

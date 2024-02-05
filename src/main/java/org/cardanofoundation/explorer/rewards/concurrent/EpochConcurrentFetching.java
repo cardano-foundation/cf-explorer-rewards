@@ -1,18 +1,20 @@
 package org.cardanofoundation.explorer.rewards.concurrent;
 
-import lombok.AccessLevel;
-import lombok.RequiredArgsConstructor;
-import lombok.experimental.FieldDefaults;
-import lombok.extern.slf4j.Slf4j;
-import org.cardanofoundation.explorer.consumercommon.entity.Epoch;
-import org.cardanofoundation.explorer.rewards.service.EpochFetchingService;
-import org.springframework.context.annotation.Profile;
-import org.springframework.stereotype.Component;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
+
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
+import lombok.extern.slf4j.Slf4j;
+
+import org.springframework.context.annotation.Profile;
+import org.springframework.stereotype.Component;
+
+import org.cardanofoundation.explorer.consumercommon.entity.Epoch;
+import org.cardanofoundation.explorer.rewards.service.EpochFetchingService;
 
 @Component
 @FieldDefaults(level = AccessLevel.PRIVATE)
@@ -37,23 +39,27 @@ public class EpochConcurrentFetching {
     List<CompletableFuture<Epoch>> futures = new ArrayList<>();
 
     for (var epoch : epochsNeedFetchData) {
-      CompletableFuture<Epoch> future = epochFetchingService.fetchData(epoch)
-          .exceptionally(
-              ex -> {
-                log.error("Exception occurred in fetch epoch data}: {}", ex.getMessage());
-                return null;
-              }
-          );
+      CompletableFuture<Epoch> future =
+          epochFetchingService
+              .fetchData(epoch)
+              .exceptionally(
+                  ex -> {
+                    log.error("Exception occurred in fetch epoch data}: {}", ex.getMessage());
+                    return null;
+                  });
       if (Objects.nonNull(future)) {
         futures.add(future);
       }
     }
 
-    List<Epoch> result = futures.stream()
-        .filter(epoch -> Objects.nonNull(epoch.join()))
-        .map(CompletableFuture::join).toList();
+    List<Epoch> result =
+        futures.stream()
+            .filter(epoch -> Objects.nonNull(epoch.join()))
+            .map(CompletableFuture::join)
+            .toList();
 
-    log.info("Fetch and save epoch record concurrently by koios api: {} ms",
+    log.info(
+        "Fetch and save epoch record concurrently by koios api: {} ms",
         System.currentTimeMillis() - curTime);
 
     return result;

@@ -9,8 +9,8 @@ import org.springframework.stereotype.Repository;
 import org.cardanofoundation.explorer.consumercommon.entity.PoolHistoryCheckpoint;
 
 @Repository
-public interface PoolHistoryCheckpointRepository extends
-    JpaRepository<PoolHistoryCheckpoint, Long> {
+public interface PoolHistoryCheckpointRepository
+    extends JpaRepository<PoolHistoryCheckpoint, Long> {
 
   List<PoolHistoryCheckpoint> findByViewIn(List<String> poolId);
 

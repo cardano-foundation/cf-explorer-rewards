@@ -1,14 +1,14 @@
 package org.cardanofoundation.explorer.rewards.schedule.service;
 
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
-import org.cardanofoundation.explorer.consumercommon.entity.PoolHash;
-import org.cardanofoundation.explorer.consumercommon.entity.PoolInfo;
-import org.cardanofoundation.explorer.rewards.config.KoiosClient;
-import org.cardanofoundation.explorer.rewards.repository.PoolHashRepository;
-import org.cardanofoundation.explorer.rewards.repository.jooq.JOOQPoolInfoRepository;
-import org.cardanofoundation.explorer.rewards.service.EpochService;
 import org.mockito.Answers;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
@@ -17,37 +17,35 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import rest.koios.client.backend.api.base.exception.ApiException;
 
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.cardanofoundation.explorer.consumercommon.entity.PoolHash;
+import org.cardanofoundation.explorer.consumercommon.entity.PoolInfo;
+import org.cardanofoundation.explorer.rewards.config.KoiosClient;
+import org.cardanofoundation.explorer.rewards.repository.PoolHashRepository;
+import org.cardanofoundation.explorer.rewards.repository.jooq.JOOQPoolInfoRepository;
+import org.cardanofoundation.explorer.rewards.service.EpochService;
 
 @ExtendWith(MockitoExtension.class)
 class PoolInfoDataServiceTest {
 
   @Mock(answer = Answers.RETURNS_DEEP_STUBS)
   private KoiosClient koiosClient;
-  @Mock
-  private JOOQPoolInfoRepository jooqPoolInfoRepository;
-  @Mock
-  private PoolHashRepository poolHashRepository;
-  @Mock
-  private EpochService epochService;
-  @InjectMocks
-  private PoolInfoDataService poolInfoDataService;
-  @Captor
-  ArgumentCaptor<List<PoolInfo>> poolInfoCaptor;
+
+  @Mock private JOOQPoolInfoRepository jooqPoolInfoRepository;
+  @Mock private PoolHashRepository poolHashRepository;
+  @Mock private EpochService epochService;
+  @InjectMocks private PoolInfoDataService poolInfoDataService;
+  @Captor ArgumentCaptor<List<PoolInfo>> poolInfoCaptor;
 
   @Test
   void fetchData_whenFetchSuccessfully() throws Exception {
     // Setup
-    List<String> poolIds = List.of("pool1chdvqec5lwsxuedrdhcdcxg2295tqrce9lcz3luru5fruzjf3wr",
-        "pool155efqn9xpcf73pphkk88cmlkdwx4ulkg606tne970qswczg3asc");
+    List<String> poolIds =
+        List.of(
+            "pool1chdvqec5lwsxuedrdhcdcxg2295tqrce9lcz3luru5fruzjf3wr",
+            "pool155efqn9xpcf73pphkk88cmlkdwx4ulkg606tne970qswczg3asc");
 
     var poolInfo1 = new rest.koios.client.backend.api.pool.model.PoolInfo();
     poolInfo1.setPoolIdBech32(poolIds.get(0));
@@ -63,23 +61,23 @@ class PoolInfoDataServiceTest {
 
     when(epochService.getCurrentEpoch()).thenReturn(416);
 
-    when(koiosClient.poolService().getPoolInformation(poolIds, null).getValue()).thenReturn(
-        List.of(poolInfo1, poolInfo2));
+    when(koiosClient.poolService().getPoolInformation(poolIds, null).getValue())
+        .thenReturn(List.of(poolInfo1, poolInfo2));
 
-    when(poolHashRepository.findByViewIn(poolIds)).thenReturn(List.of(
-        PoolHash.builder()
-            .id(1L)
-            .view("pool1chdvqec5lwsxuedrdhcdcxg2295tqrce9lcz3luru5fruzjf3wr")
-            .build(),
-        PoolHash.builder()
-            .id(2L)
-            .view("pool155efqn9xpcf73pphkk88cmlkdwx4ulkg606tne970qswczg3asc")
-            .build()
-    ));
+    when(poolHashRepository.findByViewIn(poolIds))
+        .thenReturn(
+            List.of(
+                PoolHash.builder()
+                    .id(1L)
+                    .view("pool1chdvqec5lwsxuedrdhcdcxg2295tqrce9lcz3luru5fruzjf3wr")
+                    .build(),
+                PoolHash.builder()
+                    .id(2L)
+                    .view("pool155efqn9xpcf73pphkk88cmlkdwx4ulkg606tne970qswczg3asc")
+                    .build()));
 
     // Run the test
-    final CompletableFuture<Boolean> result = poolInfoDataService.fetchData(
-        poolIds);
+    final CompletableFuture<Boolean> result = poolInfoDataService.fetchData(poolIds);
 
     // Verify
     verify(jooqPoolInfoRepository).saveAll(poolInfoCaptor.capture());
@@ -90,8 +88,10 @@ class PoolInfoDataServiceTest {
   @Test
   void fetchData_whenEpochServiceThrowsApiException() throws Exception {
     // Setup
-    List<String> poolIds = List.of("pool1chdvqec5lwsxuedrdhcdcxg2295tqrce9lcz3luru5fruzjf3wr",
-        "pool155efqn9xpcf73pphkk88cmlkdwx4ulkg606tne970qswczg3asc");
+    List<String> poolIds =
+        List.of(
+            "pool1chdvqec5lwsxuedrdhcdcxg2295tqrce9lcz3luru5fruzjf3wr",
+            "pool155efqn9xpcf73pphkk88cmlkdwx4ulkg606tne970qswczg3asc");
 
     when(epochService.getCurrentEpoch()).thenThrow(ApiException.class);
 

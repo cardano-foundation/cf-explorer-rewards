@@ -1,19 +1,20 @@
 package org.cardanofoundation.explorer.rewards.repository.jooq;
 
+import static org.jooq.impl.DSL.field;
+import static org.jooq.impl.DSL.table;
+
 import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import org.cardanofoundation.explorer.consumercommon.entity.PoolHistory;
-import org.cardanofoundation.explorer.consumercommon.entity.PoolHistory_;
-import org.cardanofoundation.explorer.rewards.util.EntityUtil;
 import org.jooq.DSLContext;
 import org.jooq.Query;
 
-import static org.jooq.impl.DSL.field;
-import static org.jooq.impl.DSL.table;
+import org.cardanofoundation.explorer.consumercommon.entity.PoolHistory;
+import org.cardanofoundation.explorer.consumercommon.entity.PoolHistory_;
+import org.cardanofoundation.explorer.rewards.util.EntityUtil;
 
 @Component
 public class JOOQPoolHistoryRepository {
@@ -22,8 +23,8 @@ public class JOOQPoolHistoryRepository {
 
   private final EntityUtil entityUtil;
 
-  public JOOQPoolHistoryRepository(DSLContext dsl,
-                                   @Value("${spring.jpa.properties.hibernate.default_schema}") String schema) {
+  public JOOQPoolHistoryRepository(
+      DSLContext dsl, @Value("${spring.jpa.properties.hibernate.default_schema}") String schema) {
     this.dsl = dsl;
     this.entityUtil = new EntityUtil(schema, PoolHistory.class);
   }
@@ -72,4 +73,3 @@ public class JOOQPoolHistoryRepository {
     dsl.batch(queries).execute();
   }
 }
-

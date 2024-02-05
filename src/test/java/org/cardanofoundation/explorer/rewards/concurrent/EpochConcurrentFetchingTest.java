@@ -1,28 +1,28 @@
 package org.cardanofoundation.explorer.rewards.concurrent;
 
-import org.cardanofoundation.explorer.consumercommon.entity.Epoch;
-import org.cardanofoundation.explorer.rewards.service.EpochFetchingService;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.util.Collections;
-import java.util.List;
-import java.util.concurrent.CompletableFuture;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.when;
 
+import java.util.Collections;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
+
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+
+import org.cardanofoundation.explorer.consumercommon.entity.Epoch;
+import org.cardanofoundation.explorer.rewards.service.EpochFetchingService;
+
 @ExtendWith(MockitoExtension.class)
 class EpochConcurrentFetchingTest {
-  @Mock
-  private EpochFetchingService epochFetchingService;
-  @InjectMocks
-  private EpochConcurrentFetching epochConcurrentFetching;
+  @Mock private EpochFetchingService epochFetchingService;
+  @InjectMocks private EpochConcurrentFetching epochConcurrentFetching;
 
   @Test
   void fetchDataConcurrently_NoEpochs_ReturnsTrue() {
@@ -44,7 +44,7 @@ class EpochConcurrentFetchingTest {
     when(epochFetchingService.fetchData(314))
         .thenReturn(CompletableFuture.completedFuture(Epoch.builder().no(314).build()));
     when(epochFetchingService.fetchData(315))
-            .thenReturn(CompletableFuture.completedFuture(Epoch.builder().no(315).build()));
+        .thenReturn(CompletableFuture.completedFuture(Epoch.builder().no(315).build()));
     // Run the test
     final List<Epoch> result = epochConcurrentFetching.fetchDataConcurrently(epochs);
 
@@ -65,5 +65,4 @@ class EpochConcurrentFetchingTest {
     // Verify the results
     assertEquals(0, result.size());
   }
-
 }

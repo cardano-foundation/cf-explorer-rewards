@@ -14,8 +14,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
-import org.cardanofoundation.explorer.rewards.service.EpochStakeFetchingService;
 import rest.koios.client.backend.api.base.exception.ApiException;
+
+import org.cardanofoundation.explorer.rewards.service.EpochStakeFetchingService;
 
 @Component
 @FieldDefaults(level = AccessLevel.PRIVATE)
@@ -31,7 +32,7 @@ public class EpochStakeConcurrentFetching {
   int subListSize;
 
   public Boolean fetchDataConcurrently(List<String> stakeAddressList) {
-    //TODO: validate stake address list
+    // TODO: validate stake address list
     var curTime = System.currentTimeMillis();
 
     if (stakeAddressList.isEmpty()) {
@@ -42,10 +43,11 @@ public class EpochStakeConcurrentFetching {
     try {
       // we only fetch data with addresses that are not in the checkpoint table
       // or in the checkpoint table but have an epoch checkpoint value < (current epoch)
-      stakeAddressListNeedFetchData = epochStakeFetchingService.getStakeAddressListNeedFetchData(
-          stakeAddressList);
+      stakeAddressListNeedFetchData =
+          epochStakeFetchingService.getStakeAddressListNeedFetchData(stakeAddressList);
     } catch (ApiException e) {
-      log.error("Exception occurs when calling getStakeAddressListNeedFetchData: {}", e.getMessage());
+      log.error(
+          "Exception occurs when calling getStakeAddressListNeedFetchData: {}", e.getMessage());
       return Boolean.FALSE;
     }
 
@@ -62,13 +64,14 @@ public class EpochStakeConcurrentFetching {
       int endIndex = Math.min(i + subListSize, stakeAddressListNeedFetchData.size());
       var sublist = stakeAddressListNeedFetchData.subList(i, endIndex);
 
-      CompletableFuture<Boolean> future = epochStakeFetchingService.fetchData(sublist)
-          .exceptionally(
-              ex -> {
-                log.error("Exception occurred in fetch epoch stake data}: {}", ex.getMessage());
-                return Boolean.FALSE;
-              }
-          );
+      CompletableFuture<Boolean> future =
+          epochStakeFetchingService
+              .fetchData(sublist)
+              .exceptionally(
+                  ex -> {
+                    log.error("Exception occurred in fetch epoch stake data}: {}", ex.getMessage());
+                    return Boolean.FALSE;
+                  });
       futures.add(future);
     }
 
@@ -76,7 +79,8 @@ public class EpochStakeConcurrentFetching {
 
     boolean result = futures.stream().allMatch(CompletableFuture::join);
 
-    log.info("Fetch and save epoch stake record concurrently by koios api: {} ms",
+    log.info(
+        "Fetch and save epoch stake record concurrently by koios api: {} ms",
         System.currentTimeMillis() - curTime);
 
     return result;
