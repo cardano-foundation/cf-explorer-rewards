@@ -1,5 +1,7 @@
 package org.cardanofoundation.explorer.rewards.config;
 
+import jakarta.annotation.PostConstruct;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
@@ -26,33 +28,40 @@ public class KoiosClient {
   @Value("${application.koios-base-url}")
   private String baseUrl;
 
+  @Value("${application.koios-auth-token}")
+  private String authToken;
+
+  private BackendService backendService;
+
   public AccountService accountService() {
-    return this.getBackendService().getAccountService();
+    return this.backendService.getAccountService();
   }
 
   public NetworkService networkService() {
-    return this.getBackendService().getNetworkService();
+    return this.backendService.getNetworkService();
   }
 
   public PoolService poolService() {
-    return this.getBackendService().getPoolService();
+    return this.backendService.getPoolService();
   }
 
   public EpochService epochService() {
-    return this.getBackendService().getEpochService();
+    return this.backendService.getEpochService();
   }
 
-  private BackendService getBackendService() {
+  @PostConstruct
+  void setBackendService() {
     if (Boolean.TRUE.equals(baseUrlEnabled)) {
-      return BackendFactory.getCustomRPCService(baseUrl);
+      backendService = BackendFactory.getCustomRPCService(baseUrl, authToken);
     } else {
-      return switch (value) {
-        case NetworkConstants.MAINNET -> BackendFactory.getKoiosMainnetService();
-        case NetworkConstants.PREPROD -> BackendFactory.getKoiosPreprodService();
-        case NetworkConstants.PREVIEW -> BackendFactory.getKoiosPreviewService();
-        case NetworkConstants.GUILDNET -> BackendFactory.getKoiosGuildService();
-        default -> throw new IllegalStateException("Unexpected value: " + value);
-      };
+      backendService =
+          switch (value) {
+            case NetworkConstants.MAINNET -> BackendFactory.getKoiosMainnetService(authToken);
+            case NetworkConstants.PREPROD -> BackendFactory.getKoiosPreprodService(authToken);
+            case NetworkConstants.PREVIEW -> BackendFactory.getKoiosPreviewService(authToken);
+            case NetworkConstants.GUILDNET -> BackendFactory.getKoiosGuildService(authToken);
+            default -> throw new IllegalStateException("Unexpected value: " + value);
+          };
     }
   }
 }

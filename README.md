@@ -43,3 +43,4 @@ To ensure the stability and reliability of this project, unit and mutation tests
 - FLYWAY_VALIDATE: whether to automatically call validate when performing a migration
 - KOIOS_BASE_URL_ENABLED: Set `true` to enable to use your Koios instance base URL, otherwise set `false`
 - KOIOS_BASE_URL: Koios instance base URL.
+- KOIOS_AUTH_TOKEN: JWT Bearer Auth token generated via https://koios.rest Profile page

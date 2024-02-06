@@ -68,7 +68,9 @@ spring:
 application:
   network: ${NETWORK:mainnet}
   koios-base-url-enabled: ${KOIOS_BASE_URL_ENABLED:false}
-  koios-base-url: ${KOIOS_BASE_URL:https://api.koios.rest/api/v0/}
+  koios-base-url: ${KOIOS_BASE_URL:https://koios-api.pro.dandelion-mainnet.eu-west-1.metadata.dev.cf-deployments.org/rpc/}
+  koios-auth-token: ${KOIOS_AUTH_TOKEN:eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhZGRyIjoic3Rha2UxdTg5eXZsNXB1OWhqenVkenF6amh3cHF2Y3Z3YTJ3dHNzNHljZG1seDM4Y2Foa2NwNWhzdmYiLCJleHAiOjE3Mzg2ODY5NjcsInRpZXIiOjEsInByb2pJRCI6ImNhcmRhbm9fZXhwbG9yZXJfcmV3YXJkIn0.vP9mbj4fDN3yz3c-kYloey9ssXbgqDcwVM3BSOJfk-g}
+
   reward:
     list-size-each-thread: ${LIST_SIZE_EACH_THREAD:5}
   epoch-stake:

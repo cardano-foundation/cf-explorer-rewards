@@ -12,7 +12,7 @@
     <version.java>17</version.java>
     <version.lombok>1.18.26</version.lombok>
     <org.projectlombok.version>1.18.24</org.projectlombok.version>
-    <koios-java-client.version>1.17.2</koios-java-client.version>
+    <koios-java-client.version>1.18.1</koios-java-client.version>
     <version.ledgersync-common>0.1.0-SNAPSHOT</version.ledgersync-common>
     <version.explorer-common>0.1.1-SNAPSHOT</version.explorer-common>
     <version.explorer-consumer-common>0.1.12</version.explorer-consumer-common>
