@@ -22,12 +22,12 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import org.cardanofoundation.explorer.consumercommon.entity.PoolHash;
-import org.cardanofoundation.explorer.consumercommon.entity.Reward;
-import org.cardanofoundation.explorer.consumercommon.entity.Reward_;
-import org.cardanofoundation.explorer.consumercommon.entity.StakeAddress;
-import org.cardanofoundation.explorer.consumercommon.enumeration.RewardType;
-import org.cardanofoundation.explorer.rewards.util.EntityUtil;
+import org.cardanofoundation.explorer.common.entity.enumeration.RewardType;
+import org.cardanofoundation.explorer.common.entity.ledgersync.PoolHash;
+import org.cardanofoundation.explorer.common.entity.ledgersync.Reward;
+import org.cardanofoundation.explorer.common.entity.ledgersync.Reward_;
+import org.cardanofoundation.explorer.common.entity.ledgersync.StakeAddress;
+import org.cardanofoundation.explorer.common.utils.EntityUtil;
 
 @JooqTest
 @ActiveProfiles("integration-test")

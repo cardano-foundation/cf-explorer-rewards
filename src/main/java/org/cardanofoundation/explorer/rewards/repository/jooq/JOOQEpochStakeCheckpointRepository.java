@@ -13,9 +13,9 @@ import org.springframework.transaction.annotation.Transactional;
 import org.jooq.DSLContext;
 import org.jooq.Query;
 
-import org.cardanofoundation.explorer.consumercommon.entity.EpochStakeCheckpoint;
-import org.cardanofoundation.explorer.consumercommon.entity.EpochStakeCheckpoint_;
-import org.cardanofoundation.explorer.rewards.util.EntityUtil;
+import org.cardanofoundation.explorer.common.entity.ledgersync.EpochStakeCheckpoint;
+import org.cardanofoundation.explorer.common.entity.ledgersync.EpochStakeCheckpoint_;
+import org.cardanofoundation.explorer.common.utils.EntityUtil;
 
 @Component
 public class JOOQEpochStakeCheckpointRepository {

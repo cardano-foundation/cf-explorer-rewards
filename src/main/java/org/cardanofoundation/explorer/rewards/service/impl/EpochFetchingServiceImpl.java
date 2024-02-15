@@ -18,8 +18,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import io.micrometer.common.util.StringUtils;
 
-import org.cardanofoundation.explorer.consumercommon.entity.Epoch;
-import org.cardanofoundation.explorer.consumercommon.enumeration.EraType;
+import org.cardanofoundation.explorer.common.entity.enumeration.EraType;
+import org.cardanofoundation.explorer.common.entity.ledgersync.Epoch;
 import org.cardanofoundation.explorer.rewards.config.KoiosClient;
 import org.cardanofoundation.explorer.rewards.repository.EpochRepository;
 import org.cardanofoundation.explorer.rewards.service.EpochFetchingService;

@@ -7,7 +7,7 @@ import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import org.cardanofoundation.explorer.consumercommon.entity.PoolHash;
+import org.cardanofoundation.explorer.common.entity.ledgersync.PoolHash;
 
 @Repository
 public interface PoolHashRepository extends JpaRepository<PoolHash, Long> {
