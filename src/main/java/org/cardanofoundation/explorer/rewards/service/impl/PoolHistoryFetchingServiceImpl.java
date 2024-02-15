@@ -21,8 +21,8 @@ import org.springframework.transaction.annotation.Transactional;
 import io.micrometer.common.util.StringUtils;
 import rest.koios.client.backend.api.base.exception.ApiException;
 
-import org.cardanofoundation.explorer.consumercommon.entity.PoolHistory;
-import org.cardanofoundation.explorer.consumercommon.entity.PoolHistoryCheckpoint;
+import org.cardanofoundation.explorer.common.entity.ledgersync.PoolHistory;
+import org.cardanofoundation.explorer.common.entity.ledgersync.PoolHistoryCheckpoint;
 import org.cardanofoundation.explorer.rewards.config.KoiosClient;
 import org.cardanofoundation.explorer.rewards.repository.PoolHashRepository;
 import org.cardanofoundation.explorer.rewards.repository.PoolHistoryCheckpointRepository;

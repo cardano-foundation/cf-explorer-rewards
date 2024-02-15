@@ -12,9 +12,9 @@ import org.springframework.stereotype.Component;
 import org.jooq.DSLContext;
 import org.jooq.Query;
 
-import org.cardanofoundation.explorer.consumercommon.entity.RewardCheckpoint;
-import org.cardanofoundation.explorer.consumercommon.entity.RewardCheckpoint_;
-import org.cardanofoundation.explorer.rewards.util.EntityUtil;
+import org.cardanofoundation.explorer.common.entity.ledgersync.RewardCheckpoint;
+import org.cardanofoundation.explorer.common.entity.ledgersync.RewardCheckpoint_;
+import org.cardanofoundation.explorer.common.utils.EntityUtil;
 
 @Component
 public class JOOQRewardCheckpointRepository {

@@ -16,8 +16,8 @@ import rest.koios.client.backend.api.network.model.Totals;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-import org.cardanofoundation.explorer.consumercommon.entity.AdaPots;
-import org.cardanofoundation.explorer.consumercommon.entity.Block;
+import org.cardanofoundation.explorer.common.entity.ledgersync.AdaPots;
+import org.cardanofoundation.explorer.common.entity.ledgersync.Block;
 import org.cardanofoundation.explorer.rewards.config.KoiosClient;
 import org.cardanofoundation.explorer.rewards.repository.AdaPotsRepository;
 import org.cardanofoundation.explorer.rewards.repository.BlockRepository;

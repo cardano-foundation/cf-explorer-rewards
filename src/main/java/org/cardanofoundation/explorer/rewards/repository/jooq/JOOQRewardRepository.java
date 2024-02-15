@@ -14,9 +14,9 @@ import org.springframework.stereotype.Repository;
 import org.jooq.DSLContext;
 import org.jooq.Query;
 
-import org.cardanofoundation.explorer.consumercommon.entity.Reward;
-import org.cardanofoundation.explorer.consumercommon.entity.Reward_;
-import org.cardanofoundation.explorer.rewards.util.EntityUtil;
+import org.cardanofoundation.explorer.common.entity.ledgersync.Reward;
+import org.cardanofoundation.explorer.common.entity.ledgersync.Reward_;
+import org.cardanofoundation.explorer.common.utils.EntityUtil;
 
 @Repository
 public class JOOQRewardRepository {

@@ -12,9 +12,9 @@ import org.springframework.stereotype.Component;
 import org.jooq.DSLContext;
 import org.jooq.Query;
 
-import org.cardanofoundation.explorer.consumercommon.entity.PoolInfo;
-import org.cardanofoundation.explorer.consumercommon.entity.PoolInfo_;
-import org.cardanofoundation.explorer.rewards.util.EntityUtil;
+import org.cardanofoundation.explorer.common.entity.ledgersync.PoolInfo;
+import org.cardanofoundation.explorer.common.entity.ledgersync.PoolInfo_;
+import org.cardanofoundation.explorer.common.utils.EntityUtil;
 
 @Component
 public class JOOQPoolInfoRepository {
