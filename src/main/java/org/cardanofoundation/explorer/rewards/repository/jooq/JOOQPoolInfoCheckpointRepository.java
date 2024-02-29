@@ -9,11 +9,12 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import org.cardanofoundation.explorer.consumercommon.entity.PoolInfoCheckpoint_;
-import org.cardanofoundation.explorer.rewards.util.EntityUtil;
 import org.jooq.DSLContext;
 import org.jooq.Query;
-import org.cardanofoundation.explorer.consumercommon.entity.PoolInfoCheckpoint;
+
+import org.cardanofoundation.explorer.common.entity.ledgersync.PoolInfoCheckpoint;
+import org.cardanofoundation.explorer.common.entity.ledgersync.PoolInfoCheckpoint_;
+import org.cardanofoundation.explorer.common.utils.EntityUtil;
 
 @Component
 public class JOOQPoolInfoCheckpointRepository {
@@ -22,8 +23,8 @@ public class JOOQPoolInfoCheckpointRepository {
 
   private final EntityUtil entityUtil;
 
-  public JOOQPoolInfoCheckpointRepository(DSLContext dsl,
-                                          @Value("${spring.jpa.properties.hibernate.default_schema}") String schema) {
+  public JOOQPoolInfoCheckpointRepository(
+      DSLContext dsl, @Value("${spring.jpa.properties.hibernate.default_schema}") String schema) {
     this.dsl = dsl;
     this.entityUtil = new EntityUtil(schema, PoolInfoCheckpoint.class);
   }

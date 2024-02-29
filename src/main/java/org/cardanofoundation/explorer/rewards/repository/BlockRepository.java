@@ -1,11 +1,10 @@
 package org.cardanofoundation.explorer.rewards.repository;
 
-
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import org.cardanofoundation.explorer.consumercommon.entity.Block;
+import org.cardanofoundation.explorer.common.entity.ledgersync.Block;
 
 public interface BlockRepository extends JpaRepository<Block, Long> {
 

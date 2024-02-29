@@ -1,9 +1,13 @@
 package org.cardanofoundation.explorer.rewards.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.cardanofoundation.explorer.rewards.concurrent.PoolHistoryConcurrentFetching;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
+import static org.hamcrest.core.StringContains.containsString;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -11,38 +15,36 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.util.List;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
-import static org.hamcrest.core.StringContains.containsString;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+
+import org.cardanofoundation.explorer.rewards.concurrent.PoolHistoryConcurrentFetching;
 
 @ExtendWith(SpringExtension.class)
 @WebMvcTest(PoolHistoryController.class)
 class PoolHistoryControllerTest {
 
-  @Autowired
-  private MockMvc mockMvc;
+  @Autowired private MockMvc mockMvc;
 
-  @MockBean
-  private PoolHistoryConcurrentFetching mockPoolHistoryConcurrentFetching;
+  @MockBean private PoolHistoryConcurrentFetching mockPoolHistoryConcurrentFetching;
 
   @Test
   void fetchPoolHistoryList_Success_ReturnsTrue() throws Exception {
-    List<String> poolIdList = List.of(
-        "pool1z5uqdk7dzdxaae5633fqfcu2eqzy3a3rgtuvy087fdld7yws0xt",
-        "pool1pu5jlj4q9w9jlxeu370a3c9myx47md5j5m2str0naunn2q3lkdy");
-    when(mockPoolHistoryConcurrentFetching.fetchDataConcurrently(poolIdList))
-        .thenReturn(true);
-    mockMvc.perform(post("/api/v1/pool-history/fetch")
-            .content(asJsonString(poolIdList))
-            .contentType(MediaType.APPLICATION_JSON)
-            .accept(MediaType.APPLICATION_JSON))
+    List<String> poolIdList =
+        List.of(
+            "pool1z5uqdk7dzdxaae5633fqfcu2eqzy3a3rgtuvy087fdld7yws0xt",
+            "pool1pu5jlj4q9w9jlxeu370a3c9myx47md5j5m2str0naunn2q3lkdy");
+    when(mockPoolHistoryConcurrentFetching.fetchDataConcurrently(poolIdList)).thenReturn(true);
+    mockMvc
+        .perform(
+            post("/api/v1/pool-history/fetch")
+                .content(asJsonString(poolIdList))
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk())
-        .andExpect(content().string(
-            containsString("true")));
+        .andExpect(content().string(containsString("true")));
   }
 
   public static String asJsonString(final Object obj) {

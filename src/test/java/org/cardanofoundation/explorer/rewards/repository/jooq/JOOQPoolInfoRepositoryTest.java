@@ -3,7 +3,6 @@ package org.cardanofoundation.explorer.rewards.repository.jooq;
 import static org.jooq.impl.DSL.field;
 import static org.jooq.impl.DSL.name;
 import static org.jooq.impl.DSL.table;
-
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -17,26 +16,24 @@ import org.springframework.boot.test.autoconfigure.jooq.JooqTest;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.test.context.ActiveProfiles;
 
-import org.cardanofoundation.explorer.consumercommon.entity.PoolInfo_;
-import org.cardanofoundation.explorer.rewards.util.EntityUtil;
 import org.jooq.DSLContext;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import org.cardanofoundation.explorer.consumercommon.entity.PoolInfo;
+import org.cardanofoundation.explorer.common.entity.ledgersync.PoolInfo;
+import org.cardanofoundation.explorer.common.entity.ledgersync.PoolInfo_;
+import org.cardanofoundation.explorer.common.utils.EntityUtil;
 
 @JooqTest
 @ActiveProfiles("integration-test")
 @ComponentScan
 class JOOQPoolInfoRepositoryTest extends TestDataBaseContainer {
 
-  @Autowired
-  private DSLContext dsl;
+  @Autowired private DSLContext dsl;
 
-  @Autowired
-  private JOOQPoolInfoRepository jooqPoolInfoRepository;
+  @Autowired private JOOQPoolInfoRepository jooqPoolInfoRepository;
 
   @Value("${spring.jpa.properties.hibernate.default_schema}")
   private String schema;

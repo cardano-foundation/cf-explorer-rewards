@@ -2,7 +2,6 @@ package org.cardanofoundation.explorer.rewards.repository.jooq;
 
 import static org.jooq.impl.DSL.field;
 import static org.jooq.impl.DSL.table;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.List;
@@ -14,16 +13,15 @@ import org.springframework.boot.test.autoconfigure.jooq.JooqTest;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.test.context.ActiveProfiles;
 
-import org.cardanofoundation.explorer.consumercommon.entity.RewardCheckpoint_;
-import org.cardanofoundation.explorer.rewards.util.EntityUtil;
 import org.jooq.DSLContext;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import org.cardanofoundation.explorer.consumercommon.entity.RewardCheckpoint;
-
+import org.cardanofoundation.explorer.common.entity.ledgersync.RewardCheckpoint;
+import org.cardanofoundation.explorer.common.entity.ledgersync.RewardCheckpoint_;
+import org.cardanofoundation.explorer.common.utils.EntityUtil;
 
 @JooqTest
 @ActiveProfiles("integration-test")

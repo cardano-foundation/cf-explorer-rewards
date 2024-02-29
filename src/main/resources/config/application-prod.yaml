@@ -13,7 +13,7 @@ spring:
     hikari:
       pool-name: explorer-api-pool
       minimum-idle: 1 #minimum number of idle connections maintained by HikariCP in a connection pool
-      maximum-pool-size: 10 #maximum pool size
+      maximum-pool-size: 32 #maximum pool size
       idle-timeout: 300000 #maximum idle time for connection
       max-lifetime: 900000 #maximum lifetime in milliseconds of a connection in the pool after it is closed.
       connection-timeout: 50000 #maximum number of milliseconds that a client will wait for a connection
@@ -63,15 +63,23 @@ spring:
     default-schema: ${spring.jpa.properties.hibernate.default_schema}
     schemas: ${spring.jpa.properties.hibernate.default_schema}
     validate-on-migrate: ${FLYWAY_VALIDATE:false}
-
+    out-of-order: true
 application:
   network: ${NETWORK:mainnet}
+  koios-base-url-enabled: ${KOIOS_BASE_URL_ENABLED:false}
+  koios-base-url: ${KOIOS_BASE_URL:https://api.koios.rest/api/v0/}
+  koios-auth-token: ${KOIOS_AUTH_TOKEN}
+
   reward:
-    list-size-each-thread: ${LIST_SIZE_EACH_THREAD:5}
+    list-size-each-thread: ${REWARD_LIST_SIZE_EACH_THREAD:5}
   epoch-stake:
-    list-size-each-thread: ${LIST_SIZE_EACH_THREAD:5}
+    list-size-each-thread: ${EPOCH_STAKE_LIST_SIZE_EACH_THREAD:5}
   pool-info:
     list-size-each-thread: ${POOL_INFO_LIST_SIZE_EACH_THREAD:500}
     job:
       enable: ${POOL_INFO_DATA_JOB_ENABLED:true}
-      fixed-delay: ${FETCH_AND_SAVE_POOL_INFO_DATA_DELAY:3600000}
+      fixed-delay:  ${FETCH_AND_SAVE_POOL_INFO_DATA_DELAY:3600000}
+
+logging:
+  level:
+    rest.koios: ERROR

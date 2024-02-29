@@ -1,28 +1,28 @@
 package org.cardanofoundation.explorer.rewards.concurrent;
 
-import org.cardanofoundation.explorer.rewards.service.AdaPotsFetchingService;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.util.Collections;
-import java.util.List;
-import java.util.concurrent.CompletableFuture;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.when;
 
+import java.util.Collections;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
+
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+
+import org.cardanofoundation.explorer.rewards.service.AdaPotsFetchingService;
+
 @ExtendWith(MockitoExtension.class)
 class AdaPostsConcurrentFetchingTest {
-  @Mock
-  private AdaPotsFetchingService adaPotsFetchingService;
-  @InjectMocks
-  private AdaPostsConcurrentFetching adaPostsConcurrentFetching;
+  @Mock private AdaPotsFetchingService adaPotsFetchingService;
+  @InjectMocks private AdaPostsConcurrentFetching adaPostsConcurrentFetching;
 
   @Test
   void fetchDataConcurrently_NoEpochs_ReturnsTrue() {

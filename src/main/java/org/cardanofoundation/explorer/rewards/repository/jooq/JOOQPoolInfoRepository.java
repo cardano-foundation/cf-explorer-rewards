@@ -6,16 +6,15 @@ import static org.jooq.impl.DSL.table;
 import java.util.ArrayList;
 import java.util.List;
 
-
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import org.cardanofoundation.explorer.consumercommon.entity.PoolInfo_;
-import org.cardanofoundation.explorer.rewards.util.EntityUtil;
 import org.jooq.DSLContext;
 import org.jooq.Query;
 
-import org.cardanofoundation.explorer.consumercommon.entity.PoolInfo;
+import org.cardanofoundation.explorer.common.entity.ledgersync.PoolInfo;
+import org.cardanofoundation.explorer.common.entity.ledgersync.PoolInfo_;
+import org.cardanofoundation.explorer.common.utils.EntityUtil;
 
 @Component
 public class JOOQPoolInfoRepository {
@@ -24,8 +23,8 @@ public class JOOQPoolInfoRepository {
 
   private final EntityUtil entityUtil;
 
-  public JOOQPoolInfoRepository(DSLContext dsl,
-                                @Value("${spring.jpa.properties.hibernate.default_schema}") String schema) {
+  public JOOQPoolInfoRepository(
+      DSLContext dsl, @Value("${spring.jpa.properties.hibernate.default_schema}") String schema) {
     this.dsl = dsl;
     this.entityUtil = new EntityUtil(schema, PoolInfo.class);
   }

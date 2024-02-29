@@ -5,14 +5,14 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 
-import org.cardanofoundation.explorer.rewards.config.KoiosClient;
-import org.cardanofoundation.explorer.rewards.repository.EpochRepository;
-import org.cardanofoundation.explorer.rewards.service.EpochService;
-
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
 import rest.koios.client.backend.api.base.exception.ApiException;
+
+import org.cardanofoundation.explorer.rewards.config.KoiosClient;
+import org.cardanofoundation.explorer.rewards.repository.EpochRepository;
+import org.cardanofoundation.explorer.rewards.service.EpochService;
 
 @Service
 @FieldDefaults(level = AccessLevel.PRIVATE)

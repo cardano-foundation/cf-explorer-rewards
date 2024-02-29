@@ -1,16 +1,10 @@
 package org.cardanofoundation.explorer.rewards.service.impl;
 
-import org.cardanofoundation.explorer.consumercommon.entity.Epoch;
-import org.cardanofoundation.explorer.consumercommon.enumeration.EraType;
-import org.cardanofoundation.explorer.rewards.config.KoiosClient;
-import org.cardanofoundation.explorer.rewards.repository.EpochRepository;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Answers;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-import rest.koios.client.backend.api.epoch.model.EpochInfo;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.when;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -18,11 +12,19 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.when;
+import org.mockito.Answers;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import rest.koios.client.backend.api.epoch.model.EpochInfo;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+
+import org.cardanofoundation.explorer.common.entity.enumeration.EraType;
+import org.cardanofoundation.explorer.common.entity.ledgersync.Epoch;
+import org.cardanofoundation.explorer.rewards.config.KoiosClient;
+import org.cardanofoundation.explorer.rewards.repository.EpochRepository;
 
 @ExtendWith(MockitoExtension.class)
 class EpochFetchingServiceImplTest {
@@ -30,11 +32,9 @@ class EpochFetchingServiceImplTest {
   @Mock(answer = Answers.RETURNS_DEEP_STUBS)
   private KoiosClient koiosClient;
 
-  @Mock
-  private EpochRepository epochRepository;
+  @Mock private EpochRepository epochRepository;
 
-  @InjectMocks
-  private EpochFetchingServiceImpl epochFetchingService;
+  @InjectMocks private EpochFetchingServiceImpl epochFetchingService;
 
   @Test
   void testFetchDataWithByronBlock() {
@@ -46,12 +46,7 @@ class EpochFetchingServiceImplTest {
     epochInfo.setTotalRewards("577641621267691");
 
     when(epochRepository.findByNo(any()))
-        .thenReturn(Optional
-            .ofNullable(Epoch
-                .builder()
-                .no(epoch)
-                .era(EraType.BYRON)
-                .build()));
+        .thenReturn(Optional.ofNullable(Epoch.builder().no(epoch).era(EraType.BYRON).build()));
 
     // Run the test
     final CompletableFuture<Epoch> result = epochFetchingService.fetchData(epoch);
@@ -68,15 +63,12 @@ class EpochFetchingServiceImplTest {
     epochInfo.setTotalRewards("577641621267691");
 
     when(epochRepository.findByNo(any()))
-            .thenReturn(Optional
-                    .ofNullable(Epoch
-                            .builder()
-                            .no(epoch)
-                            .era(EraType.SHELLEY)
-                            .build()));
-    when(koiosClient.epochService().getEpochInformationByEpoch(epoch)
-        .getValue()).thenReturn(epochInfo);
-    doNothing().when(epochRepository).updateRewardDistributedByNo(new BigInteger("577641621267691"), epoch);
+        .thenReturn(Optional.ofNullable(Epoch.builder().no(epoch).era(EraType.SHELLEY).build()));
+    when(koiosClient.epochService().getEpochInformationByEpoch(epoch).getValue())
+        .thenReturn(epochInfo);
+    doNothing()
+        .when(epochRepository)
+        .updateRewardDistributedByNo(new BigInteger("577641621267691"), epoch);
 
     // Run the test
     final CompletableFuture<Epoch> result = epochFetchingService.fetchData(epoch);
@@ -95,12 +87,12 @@ class EpochFetchingServiceImplTest {
     epochInfo.setTotalRewards("577641621267691");
 
     when(epochRepository.findByNo(any()))
-            .thenReturn(Optional
-                    .ofNullable(Epoch
-                            .builder()
-                            .no(epoch)
-                            .rewardsDistributed(new BigInteger("577641621267691"))
-                            .build()));
+        .thenReturn(
+            Optional.ofNullable(
+                Epoch.builder()
+                    .no(epoch)
+                    .rewardsDistributed(new BigInteger("577641621267691"))
+                    .build()));
     // Run the test
     final CompletableFuture<Epoch> result = epochFetchingService.fetchData(epoch);
     assertNull(result);
@@ -111,8 +103,7 @@ class EpochFetchingServiceImplTest {
     // Setup
     Integer epoch = 5000;
 
-    when(epochRepository.findByNo(any()))
-            .thenReturn(Optional.empty());
+    when(epochRepository.findByNo(any())).thenReturn(Optional.empty());
     // Run the test
     final CompletableFuture<Epoch> result = epochFetchingService.fetchData(epoch);
 
@@ -130,9 +121,8 @@ class EpochFetchingServiceImplTest {
     when(epochRepository.findByRewardsDistributedIsNotNull()).thenReturn(epochs);
 
     // Run the test
-    final List<Integer> result = epochFetchingService.getEpochsNeedFetchData(
-            List.of(312, 313, 314, 315, 316)
-    );
+    final List<Integer> result =
+        epochFetchingService.getEpochsNeedFetchData(List.of(312, 313, 314, 315, 316));
 
     // Verify the results
     assertEquals(List.of(314), result);

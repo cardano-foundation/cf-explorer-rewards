@@ -1,25 +1,22 @@
 package org.cardanofoundation.explorer.rewards.repository.jooq;
 
+import static org.jooq.impl.DSL.coalesce;
+import static org.jooq.impl.DSL.field;
+import static org.jooq.impl.DSL.table;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
 
-import org.cardanofoundation.explorer.consumercommon.entity.Reward_;
-import org.cardanofoundation.explorer.rewards.util.EntityUtil;
 import org.jooq.DSLContext;
-import org.jooq.Field;
 import org.jooq.Query;
 
-import org.cardanofoundation.explorer.consumercommon.entity.Reward;
-
-import static org.jooq.impl.DSL.coalesce;
-import static org.jooq.impl.DSL.field;
-import static org.jooq.impl.DSL.table;
+import org.cardanofoundation.explorer.common.entity.ledgersync.Reward;
+import org.cardanofoundation.explorer.common.entity.ledgersync.Reward_;
+import org.cardanofoundation.explorer.common.utils.EntityUtil;
 
 @Repository
 public class JOOQRewardRepository {
@@ -28,8 +25,8 @@ public class JOOQRewardRepository {
 
   private final EntityUtil entityUtil;
 
-  public JOOQRewardRepository(DSLContext dsl,
-                              @Value("${spring.jpa.properties.hibernate.default_schema}") String schema) {
+  public JOOQRewardRepository(
+      DSLContext dsl, @Value("${spring.jpa.properties.hibernate.default_schema}") String schema) {
     this.dsl = dsl;
     this.entityUtil = new EntityUtil(schema, Reward.class);
   }
@@ -65,8 +62,7 @@ public class JOOQRewardRepository {
                   field(addressIdField),
                   field(typeField),
                   field(earnedEpochField),
-                  coalesce(field(poolIdField), -1)
-              )
+                  coalesce(field(poolIdField), -1))
               .doNothing();
 
       queries.add(query);
@@ -75,4 +71,3 @@ public class JOOQRewardRepository {
     dsl.batch(queries).execute();
   }
 }
-

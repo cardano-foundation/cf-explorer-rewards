@@ -1,5 +1,8 @@
 package org.cardanofoundation.explorer.rewards.repository.jooq;
 
+import static org.jooq.impl.DSL.field;
+import static org.jooq.impl.DSL.name;
+import static org.jooq.impl.DSL.table;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -13,21 +16,15 @@ import org.springframework.boot.test.autoconfigure.jooq.JooqTest;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.test.context.ActiveProfiles;
 
-import org.cardanofoundation.explorer.consumercommon.entity.PoolHistory_;
-import org.cardanofoundation.explorer.consumercommon.entity.PoolInfo;
-import org.cardanofoundation.explorer.consumercommon.entity.PoolInfo_;
-import org.cardanofoundation.explorer.rewards.util.EntityUtil;
 import org.jooq.DSLContext;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import org.cardanofoundation.explorer.consumercommon.entity.PoolHistory;
-
-import static org.jooq.impl.DSL.field;
-import static org.jooq.impl.DSL.name;
-import static org.jooq.impl.DSL.table;
+import org.cardanofoundation.explorer.common.entity.ledgersync.PoolHistory;
+import org.cardanofoundation.explorer.common.entity.ledgersync.PoolHistory_;
+import org.cardanofoundation.explorer.common.utils.EntityUtil;
 
 @JooqTest
 @ActiveProfiles("integration-test")
@@ -40,6 +37,7 @@ class JOOQPoolHistoryRepositoryTest extends TestDataBaseContainer {
 
   @Value("${spring.jpa.properties.hibernate.default_schema}")
   private String schema;
+
   private String tableName;
   private String epochNoField;
 

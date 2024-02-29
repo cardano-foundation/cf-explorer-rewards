@@ -1,9 +1,9 @@
 package org.cardanofoundation.explorer.rewards.service;
 
-import org.cardanofoundation.explorer.consumercommon.entity.Epoch;
-
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+
+import org.cardanofoundation.explorer.common.entity.ledgersync.Epoch;
 
 public interface EpochFetchingService {
 

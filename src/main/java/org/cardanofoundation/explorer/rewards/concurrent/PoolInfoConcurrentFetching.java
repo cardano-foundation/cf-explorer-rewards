@@ -15,7 +15,6 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 import org.cardanofoundation.explorer.rewards.service.PoolInfoFetchingService;
-import rest.koios.client.backend.api.base.exception.ApiException;
 
 @Component
 @FieldDefaults(level = AccessLevel.PRIVATE)
@@ -31,7 +30,7 @@ public class PoolInfoConcurrentFetching {
   int subListSize;
 
   public Boolean fetchDataConcurrently(List<String> poolIds) {
-    //TODO: validate poolIds list
+    // TODO: validate poolIds list
     var curTime = System.currentTimeMillis();
 
     if (poolIds.isEmpty()) {
@@ -44,13 +43,14 @@ public class PoolInfoConcurrentFetching {
       int endIndex = Math.min(i + subListSize, poolIds.size());
       var sublist = poolIds.subList(i, endIndex);
 
-      CompletableFuture<Boolean> future = poolInfoFetchingService.fetchData(sublist)
-          .exceptionally(
-              ex -> {
-                log.error("Exception occurred in fetch epoch stake data}: {}", ex.getMessage());
-                return Boolean.FALSE;
-              }
-          );
+      CompletableFuture<Boolean> future =
+          poolInfoFetchingService
+              .fetchData(sublist)
+              .exceptionally(
+                  ex -> {
+                    log.error("Exception occurred in fetch epoch stake data}: {}", ex.getMessage());
+                    return Boolean.FALSE;
+                  });
       futures.add(future);
     }
 
@@ -58,7 +58,8 @@ public class PoolInfoConcurrentFetching {
 
     boolean result = futures.stream().allMatch(CompletableFuture::join);
 
-    log.info("Fetch and save pool info record concurrently by koios api: {} ms",
+    log.info(
+        "Fetch and save pool info record concurrently by koios api: {} ms",
         System.currentTimeMillis() - curTime);
 
     return result;

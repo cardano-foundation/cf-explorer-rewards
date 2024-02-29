@@ -18,16 +18,17 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import io.micrometer.common.util.StringUtils;
-import org.cardanofoundation.explorer.consumercommon.entity.PoolHash;
-import org.cardanofoundation.explorer.consumercommon.entity.PoolInfo;
-import org.cardanofoundation.explorer.consumercommon.entity.PoolInfoCheckpoint;
+import rest.koios.client.backend.api.base.exception.ApiException;
+
+import org.cardanofoundation.explorer.common.entity.ledgersync.PoolHash;
+import org.cardanofoundation.explorer.common.entity.ledgersync.PoolInfo;
+import org.cardanofoundation.explorer.common.entity.ledgersync.PoolInfoCheckpoint;
 import org.cardanofoundation.explorer.rewards.config.KoiosClient;
+import org.cardanofoundation.explorer.rewards.repository.PoolHashRepository;
 import org.cardanofoundation.explorer.rewards.repository.jooq.JOOQPoolInfoCheckpointRepository;
 import org.cardanofoundation.explorer.rewards.repository.jooq.JOOQPoolInfoRepository;
-import org.cardanofoundation.explorer.rewards.repository.PoolHashRepository;
 import org.cardanofoundation.explorer.rewards.service.EpochService;
 import org.cardanofoundation.explorer.rewards.service.PoolInfoFetchingService;
-import rest.koios.client.backend.api.base.exception.ApiException;
 
 @Service
 @FieldDefaults(level = AccessLevel.PRIVATE)
@@ -53,30 +54,45 @@ public class PoolInfoFetchingServiceImpl implements PoolInfoFetchingService {
 
     int currentEpoch = epochService.getCurrentEpoch();
 
-    var poolHashMap = poolHashRepository.findByViewIn(poolIds).stream().collect(Collectors.toMap(
-        PoolHash::getView, Function.identity()));
+    var poolHashMap =
+        poolHashRepository.findByViewIn(poolIds).stream()
+            .collect(Collectors.toMap(PoolHash::getView, Function.identity()));
 
     if (poolHashMap.size() != poolIds.size()) {
       return CompletableFuture.completedFuture(Boolean.FALSE);
     }
 
-    List<PoolInfo> poolInfoList = dataFromKoios.stream().map(poolInfo ->
-            PoolInfo.builder().poolId(poolHashMap.get(poolInfo.getPoolIdBech32()).getId())
-                .activeStake(StringUtils.isNotBlank(poolInfo.getActiveStake()) ? new BigInteger(
-                    poolInfo.getActiveStake()) : null)
-                .fetchedAtEpoch(currentEpoch)
-                .liveStake(StringUtils.isNotBlank(poolInfo.getLiveStake()) ? new BigInteger(
-                    poolInfo.getLiveStake()) : null)
-                .liveSaturation(poolInfo.getLiveSaturation()).build())
-        .collect(Collectors.toList());
+    List<PoolInfo> poolInfoList =
+        dataFromKoios.stream()
+            .map(
+                poolInfo ->
+                    PoolInfo.builder()
+                        .poolId(poolHashMap.get(poolInfo.getPoolIdBech32()).getId())
+                        .activeStake(
+                            StringUtils.isNotBlank(poolInfo.getActiveStake())
+                                ? new BigInteger(poolInfo.getActiveStake())
+                                : null)
+                        .fetchedAtEpoch(currentEpoch)
+                        .liveStake(
+                            StringUtils.isNotBlank(poolInfo.getLiveStake())
+                                ? new BigInteger(poolInfo.getLiveStake())
+                                : null)
+                        .liveSaturation(poolInfo.getLiveSaturation())
+                        .build())
+            .collect(Collectors.toList());
 
-    log.info("fetch {} pool_info by koios api: {} ms, with poolIds input size {}",
-        poolInfoList.size(), System.currentTimeMillis() - curTime, poolIds.size());
+    log.info(
+        "fetch {} pool_info by koios api: {} ms, with poolIds input size {}",
+        poolInfoList.size(),
+        System.currentTimeMillis() - curTime,
+        poolIds.size());
 
-    List<PoolInfoCheckpoint> poolInfoCheckpointList = poolIds.stream()
-        .map(poolId -> PoolInfoCheckpoint.builder()
-            .view(poolId).epochCheckpoint(currentEpoch).build())
-        .collect(Collectors.toList());
+    List<PoolInfoCheckpoint> poolInfoCheckpointList =
+        poolIds.stream()
+            .map(
+                poolId ->
+                    PoolInfoCheckpoint.builder().view(poolId).epochCheckpoint(currentEpoch).build())
+            .collect(Collectors.toList());
 
     jooqPoolInfoCheckpointRepository.saveAll(poolInfoCheckpointList);
     jooqPoolInfoRepository.saveAll(poolInfoList);
@@ -92,11 +108,7 @@ public class PoolInfoFetchingServiceImpl implements PoolInfoFetchingService {
    * @throws ApiException
    */
   private List<rest.koios.client.backend.api.pool.model.PoolInfo> getPoolInfoList(
-      List<String> poolIdList)
-      throws ApiException {
-    return koiosClient.poolService()
-        .getPoolInformation(poolIdList, null)
-        .getValue();
+      List<String> poolIdList) throws ApiException {
+    return koiosClient.poolService().getPoolInformation(poolIdList, null).getValue();
   }
-
 }
