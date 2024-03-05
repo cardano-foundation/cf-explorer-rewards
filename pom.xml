@@ -4,7 +4,7 @@
 
   <groupId>org.cardanofoundation.explore</groupId>
   <artifactId>rewards</artifactId>
-  <version>0.1.8-SNAPSHOT</version>
+  <version>0.9.0</version>
   <name>cardano-explorer-rewards</name>
   <packaging>jar</packaging>
   <description>This projects is meant to bring the rewards data for the explorer. It currently uses Koios to fetch the required data. A separate project to calculate the rewards without relying on DB Sync can be found here: https://github.com/cardano-foundation/cf-java-rewards-calculation</description>

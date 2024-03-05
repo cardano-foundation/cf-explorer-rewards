@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.9.0](https://github.com/cardano-foundation/cf-explorer-rewards/compare/v0.1.7...v0.9.0) (2024-03-05)
+
+
+### Features
+
+* MET-1956 add bearerToken option for backendService ([a13cf98](https://github.com/cardano-foundation/cf-explorer-rewards/commit/a13cf985c34fe4473c38f9848f19207eab1467ba))
+
 ## [0.1.7](https://github.com/cardano-foundation/cf-explorer-rewards/compare/v0.1.6...v0.1.7) (2023-10-06)
 
 
