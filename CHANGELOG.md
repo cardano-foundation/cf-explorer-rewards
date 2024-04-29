@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.0.0](https://github.com/cardano-foundation/cf-explorer-rewards/compare/v0.9.0...v1.0.0) (2024-04-29)
+
+
+### Miscellaneous Chores
+
+* release 1.0.0 ([9f6d274](https://github.com/cardano-foundation/cf-explorer-rewards/commit/9f6d274e08047fbffdb6f0b77223e79118da556c))
+* release 1.0.0 ([851c72a](https://github.com/cardano-foundation/cf-explorer-rewards/commit/851c72a872089497d915a12105c5366c080f8262))
+
 ## [0.9.0](https://github.com/cardano-foundation/cf-explorer-rewards/compare/v0.9.0...v0.9.0) (2024-04-29)
 
 
