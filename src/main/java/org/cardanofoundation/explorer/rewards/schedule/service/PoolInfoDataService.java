@@ -16,6 +16,7 @@ import org.springframework.retry.annotation.Retryable;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 
 import io.micrometer.common.util.StringUtils;
 import rest.koios.client.backend.api.base.exception.ApiException;
@@ -48,6 +49,10 @@ public class PoolInfoDataService {
     var curTime = System.currentTimeMillis();
     int currentEpoch = epochService.getCurrentEpoch();
     var dataFromKoios = getPoolInfoList(poolIds);
+
+    if(CollectionUtils.isEmpty(dataFromKoios)) {
+      return CompletableFuture.completedFuture(Boolean.TRUE);
+    }
 
     var poolHashMap =
         poolHashRepository.findByViewIn(poolIds).stream()

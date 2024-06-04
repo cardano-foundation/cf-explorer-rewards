@@ -17,6 +17,7 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 
 import io.micrometer.common.util.StringUtils;
 import rest.koios.client.backend.api.base.exception.ApiException;
@@ -59,6 +60,10 @@ public class PoolHistoryFetchingServiceImpl implements PoolHistoryFetchingServic
 
     var dataFromKoios = getPoolHistoryList(poolId);
     var poolHistoryCheckpoint = poolHistoryCheckpointRepository.findByView(poolId);
+
+    if(CollectionUtils.isEmpty(dataFromKoios)) {
+      return CompletableFuture.completedFuture(Boolean.TRUE);
+    }
 
     Map<Integer, PoolHistory> poolHistoryList =
         dataFromKoios.stream()
