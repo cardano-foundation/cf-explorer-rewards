@@ -61,7 +61,7 @@ public class PoolHistoryFetchingServiceImpl implements PoolHistoryFetchingServic
     var dataFromKoios = getPoolHistoryList(poolId);
     var poolHistoryCheckpoint = poolHistoryCheckpointRepository.findByView(poolId);
 
-    if(CollectionUtils.isEmpty(dataFromKoios)) {
+    if (CollectionUtils.isEmpty(dataFromKoios)) {
       return CompletableFuture.completedFuture(Boolean.TRUE);
     }
 

@@ -50,7 +50,7 @@ public class PoolInfoDataService {
     int currentEpoch = epochService.getCurrentEpoch();
     var dataFromKoios = getPoolInfoList(poolIds);
 
-    if(CollectionUtils.isEmpty(dataFromKoios)) {
+    if (CollectionUtils.isEmpty(dataFromKoios)) {
       return CompletableFuture.completedFuture(Boolean.TRUE);
     }
 
